@@ -3,8 +3,8 @@ from sanic import response
 from github import Github
 from pyld import jsonld
 from pyld.jsonld import JsonLdProcessor
-from rdflib.plugin import register, Parser
-from rdflib import Graph, ConjunctiveGraph
+# from rdflib.plugin import register, Parser
+# from rdflib import Graph, ConjunctiveGraph
 from sanic_jinja2 import SanicJinja2
 import requests
 import json
@@ -12,7 +12,7 @@ import json
 app = Sanic()
 jinja = SanicJinja2(app)
 item_resp = {}
-register('json-ld', Parser, 'rdflib_jsonld.parser', 'JsonLDParser')
+# register('json-ld', Parser, 'rdflib_jsonld.parser', 'JsonLDParser')
 f1 = open("./user_credentials.txt", "r")
 GITHUB_TOKEN = f1.read()
 f1.close()
