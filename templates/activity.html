@@ -1,0 +1,9 @@
+<html>
+   <body>
+   <h2>{{ data.prefLabel }}</h2>
+   <p><strong>{{ data.preamble }}</strong></p>
+   {% for item in data.order %}
+        <p>{{ item }}</p>
+   {% endfor %}
+   </body>
+</html>
