@@ -1,6 +1,6 @@
 # reprolib server
 
-`pip install requirements.txt`
+`pip3 install requirements.txt`
 
 
 to run server:
