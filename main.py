@@ -9,6 +9,7 @@ from sanic_jinja2 import SanicJinja2
 import requests
 import json
 import re
+import os
 
 app = Sanic()
 jinja = SanicJinja2(app)
@@ -79,70 +80,101 @@ async def get_item_html(request, act_name, item_id):
     return jinja.render("field.html", request, data=item_json)
 
 
-@app.route('/activity/<act_name>.jsonld')
-async def get_activity_jsonld(request, act_name):
-    hostname = request.headers['host']
-    git = Github(GITHUB_TOKEN)
-    org = git.get_organization('ReproNim')
-    repo = org.get_repo('schema-standardization')
-    act_name_lower = re.sub(r'\W+', '', act_name).lower()
-    try:
-        act_contents = repo.get_contents('activities/' + act_name)
-        for item in act_contents:
-            if item.download_url is not None:
-                i = requests.get(item.download_url)
-                try:
-                    item_resp[item.name] = i.json()
-                except json.decoder.JSONDecodeError:
-                    print("Didn't pass JSON", item.download_url, i)
-        context = item_resp[act_name_lower+'_schema']['@context']
-        item_resp[act_name_lower+'_schema']['@context'] = []
-        if isinstance(context, dict) is False:
-            for c in context:
-                c = c.replace('https://raw.githubusercontent.com/ReproNim/schema'
-                              '-standardization/master',
-                              request.scheme + '://' + hostname)
-                item_resp[act_name_lower+'_schema']['@context'].append(c)
-        return response.json(item_resp[act_name_lower+'_schema'])
-    except:
-        print('Could not fetch activity file')
-        return response.text('Could not fetch data. Check activity name')
+# @app.route('/activity/<act_name>.jsonld')
+# async def get_activity_jsonld(request, act_name):
+#     hostname = request.headers['host']
+#     git = Github(GITHUB_TOKEN)
+#     org = git.get_organization('ReproNim')
+#     repo = org.get_repo('schema-standardization')
+#     act_name_lower = re.sub(r'\W+', '', act_name).lower()
+#     try:
+#         act_contents = repo.get_contents('activities/' + act_name)
+#         for item in act_contents:
+#             if item.download_url is not None:
+#                 i = requests.get(item.download_url)
+#                 try:
+#                     item_resp[item.name] = i.json()
+#                 except json.decoder.JSONDecodeError:
+#                     print("Didn't pass JSON", item.download_url, i)
+#         context = item_resp[act_name_lower+'_schema']['@context']
+#         item_resp[act_name_lower+'_schema']['@context'] = []
+#         if isinstance(context, dict) is False:
+#             for c in context:
+#                 c = c.replace('https://raw.githubusercontent.com/ReproNim/schema'
+#                               '-standardization/master',
+#                               request.scheme + '://' + hostname)
+#                 item_resp[act_name_lower+'_schema']['@context'].append(c)
+#         return response.json(item_resp[act_name_lower+'_schema'])
+#     except:
+#         print('Could not fetch activity file')
+#         return response.text('Could not fetch data. Check activity name')
 
 
 @app.route('/activity/<act_name>')
 async def get_activity_html(request, act_name):
+    hostname = request.headers['host']
     git = Github(GITHUB_TOKEN)
     org = git.get_organization('ReproNim')
     repo = org.get_repo('schema-standardization')
-    act_name_lower = re.sub(r'\W+', '', act_name).lower()
+    filename, file_extension = os.path.splitext(act_name)
+    act_name_lower = re.sub(r'\W+', '', filename).lower()
     print(88, act_name)
-    try:
-        act_contents = repo.get_contents('activities/' + act_name)
-        for item in act_contents:
-            if item.download_url is not None:
-                i = requests.get(item.download_url)
-                try:
-                    item_resp[item.name] = i.json()
-                except json.decoder.JSONDecodeError:
-                    print("Didn't pass JSON", item.download_url, i)
-        expanded = jsonld.expand(item_resp[act_name_lower+'_schema'])
-        item_q = []
-        for field in expanded[0]['https://schema.repronim.org/order'][0]['@list']:
-            fc = requests.get(field['@id'])
-            field_json = fc.json()
-            item_q.append(field_json['question'])
-        activity = {
-            'prefLabel': expanded[0][
-                'http://www.w3.org/2004/02/skos/core#prefLabel'][0]['@value'],
-            'preamble': expanded[0]['http://schema.repronim.org/preamble'][0][
-                '@value'],
-            'order': item_q,
-        }
-        return jinja.render("activity.html", request, data=activity)
-        # return response.json(act_contents)
-    except:
-        print('error getting contents')
-        return response.text('Could not fetch data. Check activity name')
+    if not file_extension:
+        print('html')
+        # html
+        try:
+            act_contents = repo.get_contents('activities/' + act_name)
+            for item in act_contents:
+                if item.download_url is not None:
+                    i = requests.get(item.download_url)
+                    try:
+                        item_resp[item.name] = i.json()
+                    except json.decoder.JSONDecodeError:
+                        print("Didn't pass JSON", item.download_url, i)
+            expanded = jsonld.expand(item_resp[act_name_lower + '_schema'])
+            item_q = []
+            for field in expanded[0]['https://schema.repronim.org/order'][0][
+                '@list']:
+                fc = requests.get(field['@id'])
+                field_json = fc.json()
+                item_q.append(field_json['question'])
+            activity = {
+                'prefLabel': expanded[0][
+                    'http://www.w3.org/2004/02/skos/core#prefLabel'][0]['@value'],
+                'preamble': expanded[0]['http://schema.repronim.org/preamble'][0][
+                    '@value'],
+                'order': item_q,
+            }
+            return jinja.render("activity.html", request, data=activity)
+            # return response.json(act_contents)
+        except:
+            print('error getting contents')
+            return response.text('Could not fetch data. Check activity name')
+
+    elif file_extension == '.jsonld':
+        # jsonld
+        try:
+            act_contents = repo.get_contents('activities/' + filename)
+            for item in act_contents:
+                if item.download_url is not None:
+                    i = requests.get(item.download_url)
+                    try:
+                        item_resp[item.name] = i.json()
+                    except json.decoder.JSONDecodeError:
+                        print("Didn't pass JSON", item.download_url, i)
+            context = item_resp[act_name_lower + '_schema']['@context']
+            item_resp[act_name_lower + '_schema']['@context'] = []
+            if isinstance(context, dict) is False:
+                for c in context:
+                    c = c.replace(
+                        'https://raw.githubusercontent.com/ReproNim/schema'
+                        '-standardization/master',
+                        request.scheme + '://' + hostname)
+                    item_resp[act_name_lower + '_schema']['@context'].append(c)
+            return response.json(item_resp[act_name_lower + '_schema'])
+        except:
+            print('Could not fetch activity file')
+            return response.text('Could not fetch data. Check activity name')
 
 
 @app.route('/activity/<act_name>.ttl')
