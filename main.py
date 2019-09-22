@@ -45,80 +45,47 @@ async def get_activity_context(request, act_folder, act_context):
     return response.json(act_context_content.json())
 
 
-@app.route('/activity/<act_name>/item/<item_id>.jsonld')
-async def get_item_jsonld(request, act_name, item_id):
+@app.route('/activity/<act_name>/item/<item_id>')
+async def get_item(request, act_name, item_id):
     hostname = request.headers['host']
     git = Github(GITHUB_TOKEN)
     org = git.get_organization('ReproNim')
     repo = org.get_repo('schema-standardization')
-    item_content = repo.get_contents('activities/' + act_name + '/items/' + item_id)
-    i = requests.get(item_content.download_url)
-    item_jsonld = i.json()
-    context = item_jsonld['@context']
-    item_jsonld['@context'] = []
-    if isinstance(context, dict) is False:
-        for c in context:
-            c = c.replace('https://raw.githubusercontent.com/ReproNim/schema'
-                          '-standardization/master', request.scheme+'://'+hostname)
-            print(c)
-            item_jsonld['@context'].append(c)
-    return response.json(item_jsonld)
-
-
-@app.route('/activity/<act_name>/item/<item_id>')
-async def get_item_html(request, act_name, item_id):
-    git = Github(GITHUB_TOKEN)
-    org = git.get_organization('ReproNim')
-    repo = org.get_repo('schema-standardization')
-    item_content = repo.get_contents('activities/' + act_name + '/items/' + item_id)
-    i = requests.get(item_content.download_url)
-    item_json = i.json()
-    print(89, item_json['responseOptions'])
-    # if isinstance(item_json['responseOptions'], str):
-    #     item_json['responseOptions'] = \
-    #         (requests.get(item_json['responseOptions'])).json()
-    return jinja.render("field.html", request, data=item_json)
-
-
-# @app.route('/activity/<act_name>.jsonld')
-# async def get_activity_jsonld(request, act_name):
-#     hostname = request.headers['host']
-#     git = Github(GITHUB_TOKEN)
-#     org = git.get_organization('ReproNim')
-#     repo = org.get_repo('schema-standardization')
-#     act_name_lower = re.sub(r'\W+', '', act_name).lower()
-#     try:
-#         act_contents = repo.get_contents('activities/' + act_name)
-#         for item in act_contents:
-#             if item.download_url is not None:
-#                 i = requests.get(item.download_url)
-#                 try:
-#                     item_resp[item.name] = i.json()
-#                 except json.decoder.JSONDecodeError:
-#                     print("Didn't pass JSON", item.download_url, i)
-#         context = item_resp[act_name_lower+'_schema']['@context']
-#         item_resp[act_name_lower+'_schema']['@context'] = []
-#         if isinstance(context, dict) is False:
-#             for c in context:
-#                 c = c.replace('https://raw.githubusercontent.com/ReproNim/schema'
-#                               '-standardization/master',
-#                               request.scheme + '://' + hostname)
-#                 item_resp[act_name_lower+'_schema']['@context'].append(c)
-#         return response.json(item_resp[act_name_lower+'_schema'])
-#     except:
-#         print('Could not fetch activity file')
-#         return response.text('Could not fetch data. Check activity name')
+    filename, file_extension = os.path.splitext(item_id)
+    if not file_extension: # render html
+        item_content = repo.get_contents('activities/' + act_name + '/items/' + item_id)
+        i = requests.get(item_content.download_url)
+        item_json = i.json()
+        print(89, item_json['responseOptions'])
+        # if isinstance(item_json['responseOptions'], str):
+        #     item_json['responseOptions'] = \
+        #         (requests.get(item_json['responseOptions'])).json()
+        return jinja.render("field.html", request, data=item_json)
+    elif file_extension == '.jsonld':
+        item_content = repo.get_contents(
+            'activities/' + act_name + '/items/' + filename)
+        i = requests.get(item_content.download_url)
+        item_jsonld = i.json()
+        context = item_jsonld['@context']
+        item_jsonld['@context'] = []
+        if isinstance(context, dict) is False:
+            for c in context:
+                c = c.replace('https://raw.githubusercontent.com/ReproNim/schema'
+                              '-standardization/master',
+                              request.scheme + '://' + hostname)
+                print(c)
+                item_jsonld['@context'].append(c)
+        return response.json(item_jsonld)
 
 
 @app.route('/activity/<act_name>')
-async def get_activity_html(request, act_name):
+async def get_activity(request, act_name):
     hostname = request.headers['host']
     git = Github(GITHUB_TOKEN)
     org = git.get_organization('ReproNim')
     repo = org.get_repo('schema-standardization')
     filename, file_extension = os.path.splitext(act_name)
     act_name_lower = re.sub(r'\W+', '', filename).lower()
-    print(88, act_name)
     if not file_extension:
         print('html')
         # html
