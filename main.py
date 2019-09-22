@@ -144,16 +144,6 @@ async def get_activity(request, act_name):
             return response.text('Could not fetch data. Check activity name')
 
 
-@app.route('/activity/<act_name>.ttl')
-async def get_activity_ttl(request, act_name):
-    pass
-
-
-@app.route('/protocol/<proto_name>.ttl')
-async def get_protocol_ttl(request, proto_name):
-    pass
-
-
 @app.route('/activity/<act_name>/item/<item_id>.ttl')
 async def get_item_ttl(request, act_name, item_id):
     git = Github(GITHUB_TOKEN)
