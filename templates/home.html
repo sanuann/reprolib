@@ -1,0 +1,13 @@
+<html>
+   <body>
+   <h2>List of activites</h2>
+   {% for item in data.activities %}
+        <p>{{ item }}</p>
+   {% endfor %}
+   <br>
+   <h2>List of protocols</h2>
+   {% for item in data.protocols %}
+        <p>{{ item }}</p>
+   {% endfor %}
+   </body>
+</html>

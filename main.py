@@ -9,9 +9,74 @@ from sanic_jinja2 import SanicJinja2
 import requests
 import json
 import re
-import os
+import os, sys
 
-app = Sanic()
+LOG_SETTINGS = dict(
+    version=1,
+    disable_existing_loggers=False,
+    loggers={
+        "sanic.root": {"level": "INFO", "handlers": ["console", "consolefile"]},
+        "sanic.error": {
+            "level": "INFO",
+            "handlers": ["error_console", "error_consolefile"],
+            "propagate": True,
+            "qualname": "sanic.error",
+        },
+        "sanic.access": {
+            "level": "INFO",
+            "handlers": ["access_console", "access_consolefile"],
+            "propagate": True,
+            "qualname": "sanic.access",
+        },
+    },
+    handlers={
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "generic",
+            "stream": sys.stdout,
+        },
+        "error_console": {
+            "class": "logging.StreamHandler",
+            "formatter": "generic",
+            "stream": sys.stderr,
+        },
+        "access_console": {
+            "class": "logging.StreamHandler",
+            "formatter": "access",
+            "stream": sys.stdout,
+        },
+        "consolefile": {
+            'class': 'logging.FileHandler',
+            'filename': "console.log",
+            "formatter": "generic",
+        },
+        "error_consolefile": {
+            'class': 'logging.FileHandler',
+            'filename': "error.log",
+            "formatter": "generic",
+        },
+        "access_consolefile": {
+            'class': 'logging.FileHandler',
+            'filename': "access.log",
+            "formatter": "access",
+        },
+    },
+    formatters={
+        "generic": {
+            "format": "%(asctime)s [%(process)d] [%(levelname)s] %(message)s",
+            "datefmt": "[%Y-%m-%d %H:%M:%S %z]",
+            "class": "logging.Formatter",
+        },
+        "access": {
+            "format": "%(asctime)s - (%(name)s)[%(levelname)s][%(host)s]: "
+                      + "%(request)s %(message)s %(status)d %(byte)d",
+            "datefmt": "[%Y-%m-%d %H:%M:%S %z]",
+            "class": "logging.Formatter",
+        },
+    },
+)
+
+app = Sanic(log_config=LOG_SETTINGS)
 jinja = SanicJinja2(app)
 item_resp = {}
 # register('json-ld', Parser, 'rdflib_jsonld.parser', 'JsonLDParser')
@@ -22,7 +87,19 @@ f1.close()
 
 @app.route("/")
 async def test(request):
-    return response.json({'hello': 'world'})
+    hostname = request.headers['host']
+    act_names = {'activities': [], 'protocols': []}
+    git = Github(GITHUB_TOKEN)
+    org = git.get_organization('ReproNim')
+    repo = org.get_repo('schema-standardization')
+    # repo_contents = repo.get_contents('')
+    repo_activities = repo.get_contents('activities')
+    for activity in repo_activities:
+        act_names['activities'].append(hostname+'/'+activity.name)
+    repo_protocols = repo.get_contents('activity-sets')
+    for protocol in repo_protocols:
+        act_names['protocols'].append(hostname + '/' + protocol.name)
+    return jinja.render("home.html", request, data=act_names)
 
 
 @app.route('/contexts/generic')
