@@ -1,5 +1,6 @@
 from sanic import Sanic
 from sanic import response
+from sanic.log import logger
 from github import Github
 from pyld import jsonld
 from pyld.jsonld import JsonLdProcessor
@@ -92,7 +93,8 @@ async def test(request):
     git = Github(GITHUB_TOKEN)
     org = git.get_organization('ReproNim')
     repo = org.get_repo('schema-standardization')
-    # repo_contents = repo.get_contents('')
+    logger.info('hostname {}' .format(hostname))
+    logger.info('get repo: {}' .format(repo))
     repo_activities = repo.get_contents('activities')
     for activity in repo_activities:
         act_names['activities'].append(hostname+'/'+activity.name)
@@ -221,67 +223,128 @@ async def get_activity(request, act_name):
             return response.text('Could not fetch data. Check activity name')
 
 
-@app.route('/activity/<act_name>/item/<item_id>.ttl')
-async def get_item_ttl(request, act_name, item_id):
-    git = Github(GITHUB_TOKEN)
-    org = git.get_organization('ReproNim')
-    repo = org.get_repo('schema-standardization')
-    item_contents = repo.get_contents('activities/' + act_name + '/items')
-    for item in item_contents:
-        i = requests.get(item.download_url)
-        try:
-            item_resp[item.name] = i.json()
-        except json.decoder.JSONDecodeError:
-            print("Didn't pass JSON", item.download_url, i)
-
-    total_context = {}  # to store the expanded context
-    context = item_resp[item_id]['@context']
-    if isinstance(context, dict) is False:
-        for c in context:
-            context_content = requests.get(c)
-            rc = context_content.json()
-            total_context.update(rc['@context'])
-
-    compacted = jsonld.compact(item_resp[item_id], total_context)
-    # ttl_result = jsonld.to_rdf(compacted, {format: 'application/rdf+xml'})
-
-    # g = Graph().parse("https://schema.org/Person.jsonld", format="json-ld")
-    print ('`````````')
-    print(g)
-    ttl_result = g.serialize(indent=4)
-    return response.text(ttl_result)
-
-
-@app.route('/protocol/<proto_name>.jsonld')
+@app.route('/protocol/<proto_name>')
 async def get_protocol_jsonld(request, proto_name):
+    hostname = request.headers['host']
     git = Github(GITHUB_TOKEN)
     org = git.get_organization('ReproNim')
     repo = org.get_repo('schema-standardization')
-    protocol_contents = repo.get_contents('activity-sets/' + proto_name)
-    for item in protocol_contents:
-        i = requests.get(item.download_url)
+    filename, file_extension = os.path.splitext(proto_name)
+    proto_name_lower = re.sub(r'\W+', '', filename).lower()
+    if not file_extension:
+        print('html', proto_name_lower)
+        # html
         try:
-            item_resp[item.name] = i.json()
-        except json.decoder.JSONDecodeError:
-            print("Didn't pass JSON", item.download_url, i)
+            act_contents = repo.get_contents('activity-sets/' + proto_name)
+            for item in act_contents:
+                if item.download_url is not None:
+                    i = requests.get(item.download_url)
+                    try:
+                        item_resp[item.name] = i.json()
+                    except json.decoder.JSONDecodeError:
+                        print("Didn't pass JSON", item.download_url, i)
+            # expanded = jsonld.expand(item_resp[proto_name_lower + '_schema'])
+            # item_q = []
+            # for field in expanded[0]['https://schema.repronim.org/order'][0][
+            #     '@list']:
+            #     fc = requests.get(field['@id'])
+            #     field_json = fc.json()
+            #     item_q.append(field_json['question'])
+            # activity = {
+            #     'prefLabel': expanded[0][
+            #         'http://www.w3.org/2004/02/skos/core#prefLabel'][0]['@value'],
+            #     'preamble': expanded[0]['http://schema.repronim.org/preamble'][0][
+            #         '@value'],
+            #     'order': item_q,
+            # }
+            # return jinja.render("activity.html", request, data=activity)
+            return response.json(item_resp)
+        except:
+            print('error getting contents')
+            return response.text('Could not fetch data. Check protocol name')
 
-    total_context = {}  # to store the expanded context
-    context = item_resp['voice_pilot_context']['@context']
-    # active_context = JsonLdProcessor.process_context(act_ctx, context)
-    print('GET CONTEXT -----', context)
-    if isinstance(context, dict) is False:
-        # if a list, iterate and get the remote contexts
-        for c in context:
-            context_content = requests.get(c)
-            rc = context_content.json()
-            total_context.update(rc['@context'])
+    elif file_extension == '.jsonld':
+        # jsonld
+        try:
+            act_contents = repo.get_contents('activity-sets/' + filename)
+            for item in act_contents:
+                if item.download_url is not None:
+                    i = requests.get(item.download_url)
+                    try:
+                        item_resp[item.name] = i.json()
+                    except json.decoder.JSONDecodeError:
+                        print("Didn't pass JSON", item.download_url, i)
+            context = item_resp[proto_name_lower + '_schema']['@context']
+            item_resp[proto_name_lower + '_schema']['@context'] = []
+            if isinstance(context, dict) is False:
+                for c in context:
+                    c = c.replace(
+                        'https://raw.githubusercontent.com/ReproNim/schema'
+                        '-standardization/master',
+                        request.scheme + '://' + hostname)
+                    item_resp[proto_name_lower + '_schema']['@context'].append(c)
+            return response.json(item_resp[proto_name_lower + '_schema'])
+        except:
+            print('Could not fetch protocol file')
+            return response.text('Could not fetch data. Check protocol name')
+    # git = Github(GITHUB_TOKEN)
+    # org = git.get_organization('ReproNim')
+    # repo = org.get_repo('schema-standardization')
+    # protocol_contents = repo.get_contents('activity-sets/' + proto_name)
+    # for item in protocol_contents:
+    #     i = requests.get(item.download_url)
+    #     try:
+    #         item_resp[item.name] = i.json()
+    #     except json.decoder.JSONDecodeError:
+    #         print("Didn't pass JSON", item.download_url, i)
+    #
+    # total_context = {}  # to store the expanded context
+    # context = item_resp['voice_pilot_context']['@context']
+    # # active_context = JsonLdProcessor.process_context(act_ctx, context)
+    # print('GET CONTEXT -----', context)
+    # if isinstance(context, dict) is False:
+    #     # if a list, iterate and get the remote contexts
+    #     for c in context:
+    #         context_content = requests.get(c)
+    #         rc = context_content.json()
+    #         total_context.update(rc['@context'])
+    #
+    # compacted = jsonld.compact(item_resp['voice_pilot_context'], total_context,
+    #                            {'base': "https://raw.githubusercontent.com/ReproNim/schema-standardization/master/activities/"})
+    # print('-------COMPACTED----')
+    # print(compacted)
+    # return response.json(compacted)
 
-    compacted = jsonld.compact(item_resp['voice_pilot_context'], total_context,
-                               {'base': "https://raw.githubusercontent.com/ReproNim/schema-standardization/master/activities/"})
-    print('-------COMPACTED----')
-    print(compacted)
-    return response.json(compacted)
-
+# @app.route('/activity/<act_name>/item/<item_id>.ttl')
+# async def get_item_ttl(request, act_name, item_id):
+#     git = Github(GITHUB_TOKEN)
+#     org = git.get_organization('ReproNim')
+#     repo = org.get_repo('schema-standardization')
+#     item_contents = repo.get_contents('activities/' + act_name + '/items')
+#     for item in item_contents:
+#         i = requests.get(item.download_url)
+#         try:
+#             item_resp[item.name] = i.json()
+#         except json.decoder.JSONDecodeError:
+#             print("Didn't pass JSON", item.download_url, i)
+#
+#     total_context = {}  # to store the expanded context
+#     context = item_resp[item_id]['@context']
+#     if isinstance(context, dict) is False:
+#         for c in context:
+#             context_content = requests.get(c)
+#             rc = context_content.json()
+#             total_context.update(rc['@context'])
+#
+#     compacted = jsonld.compact(item_resp[item_id], total_context)
+#     # ttl_result = jsonld.to_rdf(compacted, {format: 'application/rdf+xml'})
+#
+#     # g = Graph().parse("https://schema.org/Person.jsonld", format="json-ld")
+#     print ('`````````')
+#     print(g)
+#     ttl_result = g.serialize(indent=4)
+#     return response.text(ttl_result)
 
 if __name__ == "__main__":
+    logger.info("Starting reprolib-server")
     app.run(host="0.0.0.0", port=8000)
