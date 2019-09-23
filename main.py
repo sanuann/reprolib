@@ -47,17 +47,17 @@ LOG_SETTINGS = dict(
         },
         "consolefile": {
             'class': 'logging.FileHandler',
-            'filename': "console.log",
+            'filename': "/vagrant/reprolib/console.log",
             "formatter": "generic",
         },
         "error_consolefile": {
             'class': 'logging.FileHandler',
-            'filename': "error.log",
+            'filename': "/vagrant/reprolib/error.log",
             "formatter": "generic",
         },
         "access_consolefile": {
             'class': 'logging.FileHandler',
-            'filename': "access.log",
+            'filename': "/vagrant/reprolib/access.log",
             "formatter": "access",
         },
     },
@@ -80,7 +80,7 @@ app = Sanic(log_config=LOG_SETTINGS)
 jinja = SanicJinja2(app)
 item_resp = {}
 # register('json-ld', Parser, 'rdflib_jsonld.parser', 'JsonLDParser')
-f1 = open("./user_credentials.txt", "r")
+f1 = open("/vagrant/reprolib/user_credentials.txt", "r")
 GITHUB_TOKEN = f1.read()
 f1.close()
 
