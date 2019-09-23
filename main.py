@@ -10,6 +10,7 @@ import requests
 import json
 import re
 import os, sys
+from sanic_cors import CORS, cross_origin
 
 LOG_SETTINGS = dict(
     version=1,
@@ -77,6 +78,8 @@ LOG_SETTINGS = dict(
 )
 
 app = Sanic(log_config=LOG_SETTINGS)
+CORS(app)
+
 jinja = SanicJinja2(app)
 item_resp = {}
 # register('json-ld', Parser, 'rdflib_jsonld.parser', 'JsonLDParser')
