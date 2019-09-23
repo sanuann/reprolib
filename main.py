@@ -85,7 +85,7 @@ jinja = SanicJinja2(app)
 item_resp = {}
 # register('json-ld', Parser, 'rdflib_jsonld.parser', 'JsonLDParser')
 GITHUB_TOKEN = None
-with open("./vagrant/reprolib/user_credentials.txt", "r") as fp:
+with open("/vagrant/reprolib/user_credentials.txt", "r") as fp:
     GITHUB_TOKEN = fp.read().rstrip()
 if GITHUB_TOKEN is None:
     raise ValueError('GITHUB_TOKEN is None')
