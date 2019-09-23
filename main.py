@@ -11,6 +11,7 @@ import requests
 import json
 import re
 import os, sys
+from sanic_cors import CORS, cross_origin
 
 LOG_SETTINGS = dict(
     version=1,
@@ -48,17 +49,17 @@ LOG_SETTINGS = dict(
         },
         "consolefile": {
             'class': 'logging.FileHandler',
-            'filename': "console.log",
+            'filename': "/vagrant/reprolib/console.log",
             "formatter": "generic",
         },
         "error_consolefile": {
             'class': 'logging.FileHandler',
-            'filename': "error.log",
+            'filename': "/vagrant/reprolib/error.log",
             "formatter": "generic",
         },
         "access_consolefile": {
             'class': 'logging.FileHandler',
-            'filename': "access.log",
+            'filename': "/vagrant/reprolib/access.log",
             "formatter": "access",
         },
     },
@@ -78,13 +79,16 @@ LOG_SETTINGS = dict(
 )
 
 app = Sanic(log_config=LOG_SETTINGS)
+CORS(app)
+
 jinja = SanicJinja2(app)
 item_resp = {}
 # register('json-ld', Parser, 'rdflib_jsonld.parser', 'JsonLDParser')
-f1 = open("./user_credentials.txt", "r")
-GITHUB_TOKEN = f1.read()
-f1.close()
-
+GITHUB_TOKEN = None
+with open("/vagrant/reprolib/user_credentials.txt", "r") as fp:
+    GITHUB_TOKEN = fp.read().rstrip()
+if GITHUB_TOKEN is None:
+    raise ValueError('GITHUB_TOKEN is None')
 
 @app.route("/")
 async def test(request):
@@ -348,3 +352,4 @@ async def get_protocol_jsonld(request, proto_name):
 if __name__ == "__main__":
     logger.info("Starting reprolib-server")
     app.run(host="0.0.0.0", port=8000)
+
