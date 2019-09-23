@@ -85,10 +85,11 @@ jinja = SanicJinja2(app)
 item_resp = {}
 # register('json-ld', Parser, 'rdflib_jsonld.parser', 'JsonLDParser')
 GITHUB_TOKEN = None
-with open("/vagrant/reprolib/user_credentials.txt", "r") as fp:
+with open("./vagrant/reprolib/user_credentials.txt", "r") as fp:
     GITHUB_TOKEN = fp.read().rstrip()
 if GITHUB_TOKEN is None:
     raise ValueError('GITHUB_TOKEN is None')
+
 
 @app.route("/")
 async def test(request):
@@ -97,7 +98,7 @@ async def test(request):
     git = Github(GITHUB_TOKEN)
     org = git.get_organization('ReproNim')
     repo = org.get_repo('schema-standardization')
-    logger.info('hostname {}' .format(hostname))
+    logger.info('req headers {}' .format(request.headers))
     logger.info('get repo: {}' .format(repo))
     repo_activities = repo.get_contents('activities')
     for activity in repo_activities:
@@ -108,7 +109,7 @@ async def test(request):
     return jinja.render("home.html", request, data=act_names)
 
 
-@app.route('/contexts/generic')
+@app.route('/rl/contexts/generic')
 async def get_generic_context(request):
     git = Github(GITHUB_TOKEN)
     org = git.get_organization('ReproNim')
@@ -118,7 +119,7 @@ async def get_generic_context(request):
     return response.json(context_content.json())
 
 
-@app.route('/activities/<act_folder>/<act_context>')
+@app.route('/rl/activities/<act_folder>/<act_context>')
 async def get_activity_context(request, act_folder, act_context):
     git = Github(GITHUB_TOKEN)
     org = git.get_organization('ReproNim')
@@ -155,7 +156,7 @@ async def get_item(request, act_name, item_id):
             for c in context:
                 c = c.replace('https://raw.githubusercontent.com/ReproNim/schema'
                               '-standardization/master',
-                              request.scheme + '://' + hostname)
+                              request.scheme + '://' + hostname + '/rl')
                 print(c)
                 item_jsonld['@context'].append(c)
         return response.json(item_jsonld)
@@ -219,7 +220,7 @@ async def get_activity(request, act_name):
                     c = c.replace(
                         'https://raw.githubusercontent.com/ReproNim/schema'
                         '-standardization/master',
-                        request.scheme + '://' + hostname)
+                        request.scheme + '://' + hostname + '/rl')
                     item_resp[act_name_lower + '_schema']['@context'].append(c)
             return response.json(item_resp[act_name_lower + '_schema'])
         except:
