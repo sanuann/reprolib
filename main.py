@@ -99,7 +99,6 @@ async def test(request):
     org = git.get_organization('ReproNim')
     repo = org.get_repo('schema-standardization')
     logger.info('get repo: {}' .format(repo))
-    logger.info('server name {}' .format(request.server_name))
     repo_activities = repo.get_contents('activities')
     for activity in repo_activities:
         act_names['activities'].append(hostname+'/'+activity.name)
