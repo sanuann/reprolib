@@ -108,7 +108,7 @@ async def test(request):
     return jinja.render("home.html", request, data=act_names)
 
 
-@app.route('/rl/contexts/generic')
+@app.route('/contexts/generic')
 async def get_generic_context(request):
     git = Github(GITHUB_TOKEN)
     org = git.get_organization('ReproNim')
@@ -118,7 +118,7 @@ async def get_generic_context(request):
     return response.json(context_content.json())
 
 
-@app.route('/rl/activities/<act_folder>/<act_context>')
+@app.route('/activities/<act_folder>/<act_context>')
 async def get_activity_context(request, act_folder, act_context):
     git = Github(GITHUB_TOKEN)
     org = git.get_organization('ReproNim')
