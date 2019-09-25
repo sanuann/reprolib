@@ -49,17 +49,17 @@ LOG_SETTINGS = dict(
         },
         "consolefile": {
             'class': 'logging.FileHandler',
-            'filename': "/vagrant/reprolib/console.log",
+            'filename': "./vagrant/reprolib/console.log",
             "formatter": "generic",
         },
         "error_consolefile": {
             'class': 'logging.FileHandler',
-            'filename': "/vagrant/reprolib/error.log",
+            'filename': "./vagrant/reprolib/error.log",
             "formatter": "generic",
         },
         "access_consolefile": {
             'class': 'logging.FileHandler',
-            'filename': "/vagrant/reprolib/access.log",
+            'filename': "./vagrant/reprolib/access.log",
             "formatter": "access",
         },
     },
@@ -83,9 +83,8 @@ CORS(app)
 
 jinja = SanicJinja2(app)
 item_resp = {}
-# register('json-ld', Parser, 'rdflib_jsonld.parser', 'JsonLDParser')
 GITHUB_TOKEN = None
-with open("/vagrant/reprolib/user_credentials.txt", "r") as fp:
+with open("./vagrant/reprolib/user_credentials.txt", "r") as fp:
     GITHUB_TOKEN = fp.read().rstrip()
 if GITHUB_TOKEN is None:
     raise ValueError('GITHUB_TOKEN is None')
@@ -107,22 +106,17 @@ async def test(request):
 
 @app.route('/contexts/generic')
 async def get_generic_context(request):
-    git = Github(GITHUB_TOKEN)
-    org = git.get_organization('ReproNim')
-    repo = org.get_repo('schema-standardization')
-    gen_context = repo.get_contents('contexts/generic')
-    context_content = requests.get(gen_context.download_url)
-    return response.json(context_content.json())
+    with open("./opt/schema-standardization/contexts/generic", "r") as f1:
+        context_content = json.load(f1)
+    return response.json(context_content)
 
 
 @app.route('/activities/<act_folder>/<act_context>')
 async def get_activity_context(request, act_folder, act_context):
-    git = Github(GITHUB_TOKEN)
-    org = git.get_organization('ReproNim')
-    repo = org.get_repo('schema-standardization')
-    gen_context = repo.get_contents('activities/'+act_folder+'/'+act_context)
-    act_context_content = requests.get(gen_context.download_url)
-    return response.json(act_context_content.json())
+    with open("./opt/schema-standardization/activities/" + act_folder
+              + '/' + act_context, "r") as f2:
+        act_context_content = json.load(f2)
+    return response.json(act_context_content)
 
 
 @app.route('/activity/<act_name>/item/<item_id>')
@@ -216,7 +210,7 @@ async def get_activity(request, act_name):
                     c = c.replace(
                         'https://raw.githubusercontent.com/ReproNim/schema'
                         '-standardization/master',
-                        request.scheme + '://' + hostname + '/rl')
+                        'https://sig.mit.edu/rl')
                     item_resp[act_name_lower + '_schema']['@context'].append(c)
             return response.json(item_resp[act_name_lower + '_schema'])
         except:
