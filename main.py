@@ -97,10 +97,10 @@ async def test(request):
     hostname = request.headers['host']
     api_list = {'activities': [], 'protocols': []}
     for activity in next(os.walk('/opt/schema-standardization/activities'))[1]:
-        api_list['activities'].append(request.scheme + '://' +
-                                       hostname + '/activity/' + activity)
+        api_list['activities'].append('https://sig.mit.edu/rl' + '/activity/' +
+                                      activity)
     for protocol in next(os.walk('/opt/schema-standardization/activity-sets'))[1]:
-        api_list['protocols'].append('https://sig.mit.edu/rl/' + '/protocol/' +
+        api_list['protocols'].append('https://sig.mit.edu/rl' + '/protocol/' +
                                      protocol)
     return jinja.render("home.html", request, data=api_list)
 
