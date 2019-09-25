@@ -49,17 +49,17 @@ LOG_SETTINGS = dict(
         },
         "consolefile": {
             'class': 'logging.FileHandler',
-            'filename': "./vagrant/reprolib/console.log",
+            'filename': "/vagrant/reprolib/console.log",
             "formatter": "generic",
         },
         "error_consolefile": {
             'class': 'logging.FileHandler',
-            'filename': "./vagrant/reprolib/error.log",
+            'filename': "/vagrant/reprolib/error.log",
             "formatter": "generic",
         },
         "access_consolefile": {
             'class': 'logging.FileHandler',
-            'filename': "./vagrant/reprolib/access.log",
+            'filename': "/vagrant/reprolib/access.log",
             "formatter": "access",
         },
     },
@@ -84,12 +84,13 @@ CORS(app)
 jinja = SanicJinja2(app)
 item_resp = {}
 GITHUB_TOKEN = None
-with open("./vagrant/reprolib/user_credentials.txt", "r") as fp:
+with open("/vagrant/reprolib/user_credentials.txt", "r") as fp:
     GITHUB_TOKEN = fp.read().rstrip()
 if GITHUB_TOKEN is None:
     raise ValueError('GITHUB_TOKEN is None')
 
 # '{uri.scheme}://{uri.netloc}/'.format(uri=parsed_uri)
+
 
 @app.route("/")
 async def test(request):
@@ -106,14 +107,14 @@ async def test(request):
 
 @app.route('/contexts/generic')
 async def get_generic_context(request):
-    with open("./opt/schema-standardization/contexts/generic", "r") as f1:
+    with open("/opt/schema-standardization/contexts/generic", "r") as f1:
         context_content = json.load(f1)
     return response.json(context_content)
 
 
 @app.route('/activities/<act_folder>/<act_context>')
 async def get_activity_context(request, act_folder, act_context):
-    with open("./opt/schema-standardization/activities/" + act_folder
+    with open("/opt/schema-standardization/activities/" + act_folder
               + '/' + act_context, "r") as f2:
         act_context_content = json.load(f2)
     return response.json(act_context_content)
