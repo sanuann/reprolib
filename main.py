@@ -100,8 +100,8 @@ async def test(request):
         api_list['activities'].append(request.scheme + '://' +
                                        hostname + '/activity/' + activity)
     for protocol in next(os.walk('/opt/schema-standardization/activity-sets'))[1]:
-        api_list['protocols'].append(request.scheme + '://' + hostname +
-                                      '/protocol/' + protocol)
+        api_list['protocols'].append('https://sig.mit.edu/rl/' + '/protocol/' +
+                                     protocol)
     return jinja.render("home.html", request, data=api_list)
 
 
