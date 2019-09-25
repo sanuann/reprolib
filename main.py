@@ -96,7 +96,7 @@ if GITHUB_TOKEN is None:
 async def test(request):
     hostname = request.headers['host']
     api_list = {'activities': [], 'protocols': []}
-    for activity in next(os.walk('./opt/schema-standardization/activities'))[1]:
+    for activity in next(os.walk('/opt/schema-standardization/activities'))[1]:
         api_list['activities'].append(request.scheme + '://' +
                                        hostname + '/activity/' + activity)
     for protocol in next(os.walk('./opt/schema-standardization/activity-sets'))[1]:
