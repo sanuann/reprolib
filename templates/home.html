@@ -2,12 +2,18 @@
    <body>
    <h2>List of activites</h2>
    {% for item in data.activities %}
-        <p>{{ item }}</p>
+        <script language="JavaScript">
+        document.write( "<a href=\"" + {{ item|tojson|safe }} + "\">{{ item }}" );
+        </script>
+       <br>
    {% endfor %}
    <br>
    <h2>List of protocols</h2>
    {% for item in data.protocols %}
-        <p>{{ item }}</p>
+        <script language="JavaScript">
+        document.write( "<a href=\"" + {{ item|tojson|safe }} + "\">{{ item }}" );
+        </script>
+       <br>
    {% endfor %}
    </body>
 </html>

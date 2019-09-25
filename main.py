@@ -49,17 +49,17 @@ LOG_SETTINGS = dict(
         },
         "consolefile": {
             'class': 'logging.FileHandler',
-            'filename': "/vagrant/reprolib/console.log",
+            'filename': "./vagrant/reprolib/console.log",
             "formatter": "generic",
         },
         "error_consolefile": {
             'class': 'logging.FileHandler',
-            'filename': "/vagrant/reprolib/error.log",
+            'filename': "./vagrant/reprolib/error.log",
             "formatter": "generic",
         },
         "access_consolefile": {
             'class': 'logging.FileHandler',
-            'filename': "/vagrant/reprolib/access.log",
+            'filename': "./vagrant/reprolib/access.log",
             "formatter": "access",
         },
     },
@@ -85,27 +85,24 @@ jinja = SanicJinja2(app)
 item_resp = {}
 # register('json-ld', Parser, 'rdflib_jsonld.parser', 'JsonLDParser')
 GITHUB_TOKEN = None
-with open("/vagrant/reprolib/user_credentials.txt", "r") as fp:
+with open("./vagrant/reprolib/user_credentials.txt", "r") as fp:
     GITHUB_TOKEN = fp.read().rstrip()
 if GITHUB_TOKEN is None:
     raise ValueError('GITHUB_TOKEN is None')
 
+# '{uri.scheme}://{uri.netloc}/'.format(uri=parsed_uri)
 
 @app.route("/")
 async def test(request):
     hostname = request.headers['host']
-    act_names = {'activities': [], 'protocols': []}
-    git = Github(GITHUB_TOKEN)
-    org = git.get_organization('ReproNim')
-    repo = org.get_repo('schema-standardization')
-    logger.info('get repo: {}' .format(repo))
-    repo_activities = repo.get_contents('activities')
-    for activity in repo_activities:
-        act_names['activities'].append(hostname+'/'+activity.name)
-    repo_protocols = repo.get_contents('activity-sets')
-    for protocol in repo_protocols:
-        act_names['protocols'].append(hostname + '/' + protocol.name)
-    return jinja.render("home.html", request, data=act_names)
+    api_list = {'activities': [], 'protocols': []}
+    for activity in next(os.walk('./opt/schema-standardization/activities'))[1]:
+        api_list['activities'].append(request.scheme + '://' +
+                                       hostname + '/activity/' + activity)
+    for protocol in next(os.walk('./opt/schema-standardization/activity-sets'))[1]:
+        api_list['protocols'].append(request.scheme + '://' + hostname +
+                                      '/protocol/' + protocol)
+    return jinja.render("home.html", request, data=api_list)
 
 
 @app.route('/contexts/generic')
