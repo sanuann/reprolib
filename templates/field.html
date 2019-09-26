@@ -1,6 +1,6 @@
 <html>
    <body>
-   <h2>{{ data['skos:prefLabel'] }}</h2>
+   <h2>{{ data.prefLabel }}</h2>
    <p><strong>{{ data.question }}</strong></p>
    <ul>
        {% for item in data.responseOptions['choices'] %}
