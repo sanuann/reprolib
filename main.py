@@ -45,17 +45,17 @@ LOG_SETTINGS = dict(
         },
         "consolefile": {
             'class': 'logging.FileHandler',
-            'filename': "/vagrant/reprolib/console.log",
+            'filename': "./vagrant/reprolib/console.log",
             "formatter": "generic",
         },
         "error_consolefile": {
             'class': 'logging.FileHandler',
-            'filename': "/vagrant/reprolib/error.log",
+            'filename': "./vagrant/reprolib/error.log",
             "formatter": "generic",
         },
         "access_consolefile": {
             'class': 'logging.FileHandler',
-            'filename': "/vagrant/reprolib/access.log",
+            'filename': "./vagrant/reprolib/access.log",
             "formatter": "access",
         },
     },
@@ -80,31 +80,40 @@ CORS(app)
 jinja = SanicJinja2(app)
 item_resp = {}
 
+
 # '{uri.scheme}://{uri.netloc}/'.format(uri=parsed_uri)
+
+async def determine_env(hostname):
+    if '0.0.0.0' in hostname:
+        print(86, 'local', hostname)
+        return hostname
+    else:
+        return hostname + '/rl'
 
 
 @app.route("/")
 async def test(request):
+    hostname = await determine_env(request.headers['host'])
     api_list = {'activities': [], 'protocols': []}
-    for activity in next(os.walk('/opt/schema-standardization/activities'))[1]:
-        api_list['activities'].append('https://sig.mit.edu/rl' + '/activity/' +
-                                      activity)
-    for protocol in next(os.walk('/opt/schema-standardization/activity-sets'))[1]:
-        api_list['protocols'].append('https://sig.mit.edu/rl' + '/protocol/' +
-                                     protocol)
+    for activity in next(os.walk('./opt/schema-standardization/activities'))[1]:
+        api_list['activities'].append(request.scheme + '://' + hostname +
+                                      '/activity/' + activity)
+    for protocol in next(os.walk('./opt/schema-standardization/activity-sets'))[1]:
+        api_list['protocols'].append(request.scheme + '://' + hostname +
+                                     '/protocol/' + protocol)
     return jinja.render("home.html", request, data=api_list)
 
 
 @app.route('/contexts/generic')
 async def get_generic_context(request):
-    with open("/opt/schema-standardization/contexts/generic", "r") as f1:
+    with open("./opt/schema-standardization/contexts/generic", "r") as f1:
         context_content = json.load(f1)
     return response.json(context_content)
 
 
 @app.route('/activities/<act_folder>/<act_context>')
 async def get_activity_context(request, act_folder, act_context):
-    with open("/opt/schema-standardization/activities/" + act_folder
+    with open("./opt/schema-standardization/activities/" + act_folder
               + '/' + act_context, "r") as f2:
         act_context_content = json.load(f2)
     return response.json(act_context_content)
@@ -116,7 +125,7 @@ async def get_item(request, act_name, item_id):
     if not file_extension:
         # render html
         try:
-            with open("/opt/schema-standardization/activities/" + act_name
+            with open("./opt/schema-standardization/activities/" + act_name
                       + '/items/' + filename, "r") as f2:
                 item_json = json.load(f2)
             expanded = jsonld.expand(item_json)
@@ -136,7 +145,7 @@ async def get_item(request, act_name, item_id):
             return response.text('Could not fetch data. Check item name')
 
     elif file_extension == '.jsonld':
-        with open("/opt/schema-standardization/activities/" + act_name
+        with open("./opt/schema-standardization/activities/" + act_name
                   + '/items/' + filename, "r") as f2:
             item_json = json.load(f2)
         context = item_json['@context']
@@ -156,32 +165,33 @@ async def get_activity(request, act_name):
     if not file_extension:
         # html
         try:
-            with open("/opt/schema-standardization/activities/" + act_name
+            with open("./opt/schema-standardization/activities/" + act_name
                       + '/' + act_name_lower + '_schema', "r") as f2:
                 act_schema_content = json.load(f2)
             expanded = jsonld.expand(act_schema_content)
             item_q = []
             for field in expanded[0]['https://schema.repronim.org/order'][0][
                 '@list']:
-                fc = requests.get(field['@id'])
+                fc = requests.get(field['@id']) # fetch from local repo??
                 field_json = fc.json()
                 item_q.append(field_json['question'])
+            # print(180,item_q)
             activity = {
                 'prefLabel': expanded[0][
                     'http://www.w3.org/2004/02/skos/core#prefLabel'][0]['@value'],
-                'preamble': expanded[0]['http://schema.repronim.org/preamble'][0][
+                'preamble': expanded[0]['https://schema.repronim.org/preamble'][0][
                     '@value'],
                 'order': item_q,
             }
             return jinja.render("activity.html", request, data=activity)
         except:
             print('error getting contents')
-            return response.text('Could not fetch data. Check activity name')
+            return response.text('Could not fetch data. Check activity name1')
 
     elif file_extension == '.jsonld':
         # jsonld
         try:
-            with open("/opt/schema-standardization/activities/" + filename
+            with open("./opt/schema-standardization/activities/" + filename
                       + '/' + act_name_lower + '_schema', "r") as fa:
                 act_schema_contents = json.load(fa)
             context = act_schema_contents['@context']
@@ -200,13 +210,13 @@ async def get_activity(request, act_name):
 
 
 @app.route('/protocol/<proto_name>')
-async def get_protocol_jsonld(request, proto_name):
+async def get_protocol(request, proto_name):
     filename, file_extension = os.path.splitext(proto_name)
     if not file_extension:
         print('html')
         # html. for time being it renders jsonld
         try:
-            with open("/opt/schema-standardization/activity-sets/" + filename
+            with open("./opt/schema-standardization/activity-sets/" + filename
                       + '/' + filename + '_schema', "r") as f1:
                 proto_schema_contents = json.load(f1)
 
@@ -227,7 +237,7 @@ async def get_protocol_jsonld(request, proto_name):
     elif file_extension == '.jsonld':
         # jsonld
         try:
-            with open("/opt/schema-standardization/activity-sets/" + filename
+            with open("./opt/schema-standardization/activity-sets/" + filename
                       + '/' + filename + '_schema', "r") as f1:
                 proto_schema_contents = json.load(f1)
 
