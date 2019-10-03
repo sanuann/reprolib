@@ -45,17 +45,17 @@ LOG_SETTINGS = dict(
         },
         "consolefile": {
             'class': 'logging.FileHandler',
-            'filename': "./vagrant/reprolib/console.log",
+            'filename': "/vagrant/reprolib/console.log",
             "formatter": "generic",
         },
         "error_consolefile": {
             'class': 'logging.FileHandler',
-            'filename': "./vagrant/reprolib/error.log",
+            'filename': "/vagrant/reprolib/error.log",
             "formatter": "generic",
         },
         "access_consolefile": {
             'class': 'logging.FileHandler',
-            'filename': "./vagrant/reprolib/access.log",
+            'filename': "/vagrant/reprolib/access.log",
             "formatter": "access",
         },
     },
@@ -165,7 +165,7 @@ async def get_activity(request, act_name):
     if not file_extension:
         # html
         try:
-            with open("./opt/schema-standardization/activities/" + act_name
+            with open("/opt/schema-standardization/activities/" + act_name
                       + '/' + act_name_lower + '_schema', "r") as f2:
                 act_schema_content = json.load(f2)
             expanded = jsonld.expand(act_schema_content)
@@ -191,7 +191,7 @@ async def get_activity(request, act_name):
     elif file_extension == '.jsonld':
         # jsonld
         try:
-            with open("./opt/schema-standardization/activities/" + filename
+            with open("/opt/schema-standardization/activities/" + filename
                       + '/' + act_name_lower + '_schema', "r") as fa:
                 act_schema_contents = json.load(fa)
             context = act_schema_contents['@context']
@@ -216,7 +216,7 @@ async def get_protocol(request, proto_name):
         print('html')
         # html. for time being it renders jsonld
         try:
-            with open("./opt/schema-standardization/activity-sets/" + filename
+            with open("/opt/schema-standardization/activity-sets/" + filename
                       + '/' + filename + '_schema', "r") as f1:
                 proto_schema_contents = json.load(f1)
 
@@ -237,7 +237,7 @@ async def get_protocol(request, proto_name):
     elif file_extension == '.jsonld':
         # jsonld
         try:
-            with open("./opt/schema-standardization/activity-sets/" + filename
+            with open("/opt/schema-standardization/activity-sets/" + filename
                       + '/' + filename + '_schema', "r") as f1:
                 proto_schema_contents = json.load(f1)
 
