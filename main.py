@@ -95,10 +95,10 @@ async def determine_env(hostname):
 async def test(request):
     hostname = await determine_env(request.headers['host'])
     api_list = {'activities': [], 'protocols': []}
-    for activity in next(os.walk('./opt/schema-standardization/activities'))[1]:
+    for activity in next(os.walk('/opt/schema-standardization/activities'))[1]:
         api_list['activities'].append(request.scheme + '://' + hostname +
                                       '/activity/' + activity)
-    for protocol in next(os.walk('./opt/schema-standardization/activity-sets'))[1]:
+    for protocol in next(os.walk('/opt/schema-standardization/activity-sets'))[1]:
         api_list['protocols'].append(request.scheme + '://' + hostname +
                                      '/protocol/' + protocol)
     return jinja.render("home.html", request, data=api_list)
@@ -106,14 +106,14 @@ async def test(request):
 
 @app.route('/contexts/generic')
 async def get_generic_context(request):
-    with open("./opt/schema-standardization/contexts/generic", "r") as f1:
+    with open("/opt/schema-standardization/contexts/generic", "r") as f1:
         context_content = json.load(f1)
     return response.json(context_content)
 
 
 @app.route('/activities/<act_folder>/<act_context>')
 async def get_activity_context(request, act_folder, act_context):
-    with open("./opt/schema-standardization/activities/" + act_folder
+    with open("/opt/schema-standardization/activities/" + act_folder
               + '/' + act_context, "r") as f2:
         act_context_content = json.load(f2)
     return response.json(act_context_content)
@@ -125,7 +125,7 @@ async def get_item(request, act_name, item_id):
     if not file_extension:
         # render html
         try:
-            with open("./opt/schema-standardization/activities/" + act_name
+            with open("/opt/schema-standardization/activities/" + act_name
                       + '/items/' + filename, "r") as f2:
                 item_json = json.load(f2)
             expanded = jsonld.expand(item_json)
@@ -145,7 +145,7 @@ async def get_item(request, act_name, item_id):
             return response.text('Could not fetch data. Check item name')
 
     elif file_extension == '.jsonld':
-        with open("./opt/schema-standardization/activities/" + act_name
+        with open("/opt/schema-standardization/activities/" + act_name
                   + '/items/' + filename, "r") as f2:
             item_json = json.load(f2)
         context = item_json['@context']
