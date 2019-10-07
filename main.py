@@ -117,10 +117,15 @@ async def determine_env(hostname):
         return hostname + '/rl'
 
 
-async def update(request):
+@app.route("/update")
+def update(request):
     import subprocess as sp
     out = sp.run(['git', 'pull'], cwd='/opt/schema-standardization', capture_output=True)
-    logger.info(out)
+    if out.returncode == 0:
+        logger.info(out)
+    else:
+        logger.error(out)
+    return response.json(out.__dict__)
 
 
 @app.route("/")
@@ -280,7 +285,7 @@ async def get_terms(request, term_name):
     # if not file_extension:
     #     # html
     #     try:
-    #         with open("../opt/schema-standardization/terms/" + term_name
+    #         with open(".../opt/schema-standardization/terms/" + term_name
     #                   + '.jsonld', "r") as f2:
     #             term_schema_content = json.load(f2)
     #         expanded = jsonld.expand(term_schema_content)
@@ -306,7 +311,7 @@ async def get_terms(request, term_name):
     # elif file_extension == '.jsonld':
     #     # jsonld
     #     try:
-    #         with open("../opt/schema-standardization/terms/" + filename
+    #         with open("..../opt/schema-standardization/terms/" + filename
     #                   + '.jsonld', "r") as fa:
     #             term_schema_content = json.load(fa)
     #         context = term_schema_content['@context']
