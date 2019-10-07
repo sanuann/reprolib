@@ -150,6 +150,15 @@ async def get_generic_context(request):
     return response.json(new_file)
 
 
+@app.route('/activity-sets/<proto_folder>/<proto_context>')
+async def get_protocol_context(request, proto_folder, proto_context):
+    with open("/opt/schema-standardization/activity-sets/" + proto_folder + '/' +
+              proto_context, "r") as f1:
+        file_content = json.load(f1)
+    new_file = await replace_url(file_content, request)
+    return response.json(new_file)
+
+
 @app.route('/activities/<act_folder>/<act_context>')
 async def get_activity_context(request, act_folder, act_context):
     with open("/opt/schema-standardization/activities/" + act_folder
