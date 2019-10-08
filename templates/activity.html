@@ -1,9 +1,9 @@
 <html>
    <body>
-       <h2>{{ data.prefLabel }}</h2>
+       <h2>{{ data['skos:prefLabel'] }}</h2>
        <p><strong>{{ data.preamble }}</strong></p>
        <ol>
-           {% for item in data.order %}
+           {% for item in data.ui.order %}
                <li><p>{{ item }}</p></li>
            {% endfor %}
        </ol>
