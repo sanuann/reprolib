@@ -260,34 +260,40 @@ async def get_protocol(request, proto_name):
 @app.route('/terms/<term_name>')
 async def get_terms(request, term_name):
     filename, file_extension = os.path.splitext(term_name)
-    files = (file for file in os.listdir('/opt/schema-standardization/terms')
-             if os.path.isfile(os.path.join('/opt/schema-standardization/terms',
-                                            file)))
-    for file in files:
-        with open(os.path.join('/opt/schema-standardization/terms', file), "r") as fa:
-            try:
-                file_content = json.load(fa)
-                if '@id' in file_content and file_content['@id'] == filename:
-                    # get the file with matching @id and exit loop
-                    term_schema_content = file_content
-                    break
-            except ValueError as e:
-                print('not json file', e)
-    context = term_schema_content['@context']
-    if isinstance(context, dict) is False:
-        term_schema_content['@context'] = []
-        for c in context:
-            c = c.replace(
-                'https://raw.githubusercontent.com/ReproNim/schema'
-                '-standardization/master',
-                'https://sig.mit.edu/rl')
-            term_schema_content['@context'].append(c)
-    return response.json(term_schema_content, ensure_ascii=False, escape_forward_slashes=False)
+    with open("/opt/schema-standardization/terms/" + filename, "r") as f1:
+        file_content = json.load(f1)
+    print(26, file_content)
+    new_file = await replace_url(file_content, request)
+    return response.json(new_file, ensure_ascii=False, escape_forward_slashes=False)
+
+    # files = (file for file in os.listdir('/opt/schema-standardization/terms')
+    #          if os.path.isfile(os.path.join('/opt/schema-standardization/terms',
+    #                                         file)))
+    # for file in files:
+    #     with open(os.path.join('/opt/schema-standardization/terms', file), "r") as fa:
+    #         try:
+    #             file_content = json.load(fa)
+    #             if '@id' in file_content and file_content['@id'] == filename:
+    #                 # get the file with matching @id and exit loop
+    #                 term_schema_content = file_content
+    #                 break
+    #         except ValueError as e:
+    #             print('not json file', e)
+    # context = term_schema_content['@context']
+    # if isinstance(context, dict) is False:
+    #     term_schema_content['@context'] = []
+    #     for c in context:
+    #         c = c.replace(
+    #             'https://raw.githubusercontent.com/ReproNim/schema'
+    #             '-standardization/master',
+    #             'https://sig.mit.edu/rl')
+    #         term_schema_content['@context'].append(c)
+    # return response.json(term_schema_content, ensure_ascii=False, escape_forward_slashes=False)
 
     # if not file_extension:
     #     # html
     #     try:
-    #         with open("...../opt/schema-standardization/terms/" + term_name
+    #         with open("....../opt/schema-standardization/terms/" + term_name
     #                   + '.jsonld', "r") as f2:
     #             term_schema_content = json.load(f2)
     #         expanded = jsonld.expand(term_schema_content)
@@ -313,7 +319,7 @@ async def get_terms(request, term_name):
     # elif file_extension == '.jsonld':
     #     # jsonld
     #     try:
-    #         with open("....../opt/schema-standardization/terms/" + filename
+    #         with open("......./opt/schema-standardization/terms/" + filename
     #                   + '.jsonld', "r") as fa:
     #             term_schema_content = json.load(fa)
     #         context = term_schema_content['@context']

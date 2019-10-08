@@ -2,6 +2,9 @@
 user_credentials.txt
 __pycache__/
 *.log
+.DS_Store
+
+
 
 
 
