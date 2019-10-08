@@ -120,7 +120,7 @@ async def determine_env(hostname):
 @app.route("/update")
 def update(request):
     import subprocess as sp
-    out = sp.run(['git', 'pull'], cwd='../opt/schema-standardization', capture_output=True)
+    out = sp.run(['git', 'pull'], cwd='/opt/schema-standardization', capture_output=True)
     if out.returncode == 0:
         logger.info(out)
     else:
@@ -135,10 +135,10 @@ async def test(request):
     for activity in next(os.walk('/opt/schema-standardization/activities'))[1]:
 
         api_list['activities'].append(request.scheme + '://' + hostname +
-                                      '/activity/' + activity)
+                                      '/activities/' + activity)
     for protocol in next(os.walk('/opt/schema-standardization/activity-sets'))[1]:
         api_list['protocols'].append(request.scheme + '://' + hostname +
-                                     '/protocol/' + protocol)
+                                     '/protocols/' + protocol)
     return jinja.render("home.html", request, data=api_list)
 
 
@@ -168,13 +168,14 @@ async def get_activity_context(request, act_folder, act_context):
     return response.json(new_file)
 
 
-@app.route('/activity/<act_name>/item/<item_id>')
+@app.route('/activities/<act_name>/items/<item_id>')
 async def get_item(request, act_name, item_id):
     filename, file_extension = os.path.splitext(item_id)
     try:
         with open("/opt/schema-standardization/activities/" + act_name
                   + '/items/' + filename, "r") as f2:
             file_content = json.load(f2)
+            print(178, file_content)
             new_file = await replace_url(file_content, request)
     except:
         print('error getting contents')
@@ -188,7 +189,7 @@ async def get_item(request, act_name, item_id):
         return response.json(new_file)
 
 
-@app.route('/activity/<act_name>')
+@app.route('/activities/<act_name>')
 async def get_activity(request, act_name):
     filename, file_extension = os.path.splitext(act_name)
     # act_name_lower = re.sub(r'\W+', '', filename).lower()
@@ -220,7 +221,7 @@ async def get_activity(request, act_name):
             return jinja.render("activity.html", request, data=new_file)
         except ValueError as e:
             print('error in expanded contents to render html', e)
-            return response.text('Could not render expanded data.')
+            return response.text('Could not render data.')
 
     elif file_extension == '.jsonld':
         # jsonld
@@ -286,7 +287,7 @@ async def get_terms(request, term_name):
     # if not file_extension:
     #     # html
     #     try:
-    #         with open("..../opt/schema-standardization/terms/" + term_name
+    #         with open("...../opt/schema-standardization/terms/" + term_name
     #                   + '.jsonld', "r") as f2:
     #             term_schema_content = json.load(f2)
     #         expanded = jsonld.expand(term_schema_content)
@@ -312,7 +313,7 @@ async def get_terms(request, term_name):
     # elif file_extension == '.jsonld':
     #     # jsonld
     #     try:
-    #         with open("...../opt/schema-standardization/terms/" + filename
+    #         with open("....../opt/schema-standardization/terms/" + filename
     #                   + '.jsonld', "r") as fa:
     #             term_schema_content = json.load(fa)
     #         context = term_schema_content['@context']
