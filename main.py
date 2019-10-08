@@ -125,7 +125,7 @@ def update(request):
         logger.info(out)
     else:
         logger.error(out)
-    return response.json(out.__dict__)
+    return response.json(out.__dict__, ensure_ascii=False, escape_forward_slashes=False)
 
 
 @app.route("/")
@@ -147,7 +147,7 @@ async def get_generic_context(request):
     with open("/opt/schema-standardization/contexts/generic", "r") as f1:
         file_content = json.load(f1)
     new_file = await replace_url(file_content, request)
-    return response.json(new_file)
+    return response.json(new_file, ensure_ascii=False, escape_forward_slashes=False)
 
 
 @app.route('/activity-sets/<proto_folder>/<proto_context>')
@@ -156,7 +156,7 @@ async def get_protocol_context(request, proto_folder, proto_context):
               proto_context, "r") as f1:
         file_content = json.load(f1)
     new_file = await replace_url(file_content, request)
-    return response.json(new_file)
+    return response.json(new_file, ensure_ascii=False, escape_forward_slashes=False)
 
 
 @app.route('/activities/<act_folder>/<act_context>')
@@ -165,7 +165,7 @@ async def get_activity_context(request, act_folder, act_context):
               + '/' + act_context, "r") as f2:
         file_content = json.load(f2)
     new_file = await replace_url(file_content, request)
-    return response.json(new_file)
+    return response.json(new_file, ensure_ascii=False, escape_forward_slashes=False)
 
 
 @app.route('/activities/<act_name>/items/<item_id>')
@@ -186,7 +186,7 @@ async def get_item(request, act_name, item_id):
         return jinja.render("field.html", request, data=new_file)
 
     elif file_extension == '.jsonld':
-        return response.json(new_file)
+        return response.json(new_file, ensure_ascii=False, escape_forward_slashes=False)
 
 
 @app.route('/activities/<act_name>')
@@ -225,7 +225,7 @@ async def get_activity(request, act_name):
 
     elif file_extension == '.jsonld':
         # jsonld
-        return response.json(new_file)
+        return response.json(new_file, ensure_ascii=False, escape_forward_slashes=False)
 
 
 @app.route('/protocol/<proto_name>')
@@ -250,11 +250,11 @@ async def get_protocol(request, proto_name):
     if not file_extension:
         print('html')
         # html. for time being it renders jsonld
-        return response.json(new_file)
+        return response.json(new_file, ensure_ascii=False, escape_forward_slashes=False)
 
     elif file_extension == '.jsonld':
         # jsonld
-        return response.json(new_file)
+        return response.json(new_file, ensure_ascii=False, escape_forward_slashes=False)
 
 
 @app.route('/terms/<term_name>')
@@ -282,7 +282,7 @@ async def get_terms(request, term_name):
                 '-standardization/master',
                 'https://sig.mit.edu/rl')
             term_schema_content['@context'].append(c)
-    return response.json(term_schema_content)
+    return response.json(term_schema_content, ensure_ascii=False, escape_forward_slashes=False)
 
     # if not file_extension:
     #     # html
@@ -325,7 +325,7 @@ async def get_terms(request, term_name):
     #                     '-standardization/master',
     #                     'https://sig.mit.edu/rl')
     #                 term_schema_content['@context'].append(c)
-    #         return response.json(term_schema_content)
+    #         return response.json(term_schema_content, ensure_ascii=False, escape_forward_slashes=False)
     #     except:
     #         print('Could not fetch term file')
     #         return response.text('Could not fetch data. Check term name')
