@@ -120,7 +120,7 @@ async def determine_env(hostname):
 @app.route("/update")
 def update(request):
     import subprocess as sp
-    out = sp.run(['git', 'pull'], cwd='../opt/schema-standardization', capture_output=True)
+    out = sp.run(['git', 'pull'], cwd='/opt/schema-standardization', capture_output=True)
     if out.returncode == 0:
         logger.info(out)
     else:
@@ -180,7 +180,8 @@ async def get_item(request, act_name, item_id):
     view_options = 1  # default view is html
     response_headers = {'Content-type': 'application/ld+json'}
     filename, file_extension = os.path.splitext(item_id)
-    if request.headers.get('accept') == 'application/json':
+    if request.headers.get('accept') == 'application/json' or \
+            request.headers.get('accept') == 'application/ld+json':
         view_options = 2
     else:
         if not file_extension:
@@ -211,7 +212,8 @@ async def get_activity(request, act_name):
     view_options = 1 # default view is html
     response_headers = {'Content-type': 'application/ld+json'}
     filename, file_extension = os.path.splitext(act_name)
-    if request.headers.get('accept') == 'application/json':
+    if request.headers.get('accept') == 'application/json' or \
+            request.headers.get('accept') == 'application/ld+json':
         view_options = 2
     else:
         if not file_extension:
@@ -263,7 +265,8 @@ async def get_protocol(request, proto_name):
     view_options = 1  # default view is html
     response_headers = {'Content-type': 'application/ld+json'}
     filename, file_extension = os.path.splitext(proto_name)
-    if request.headers.get('accept') == 'application/json':
+    if request.headers.get('accept') == 'application/json' or \
+            request.headers.get('accept') == 'application/ld+json':
         view_options = 2
     else:
         if not file_extension:
@@ -301,7 +304,8 @@ async def get_terms(request, term_name):
     view_options = 1  # default view is html
     response_headers = {'Content-type': 'application/ld+json'}
     filename, file_extension = os.path.splitext(term_name)
-    if request.headers.get('accept') == 'application/json':
+    if request.headers.get('accept') == 'application/json' or \
+            request.headers.get('accept') == 'application/ld+json':
         view_options = 2
     else:
         if not file_extension:
@@ -348,7 +352,7 @@ async def get_terms(request, term_name):
     # if not file_extension:
     #     # html
     #     try:
-    #         with open("........../opt/schema-standardization/terms/" + term_name
+    #         with open(".........../opt/schema-standardization/terms/" + term_name
     #                   + '.jsonld', "r") as f2:
     #             term_schema_content = json.load(f2)
     #         expanded = jsonld.expand(term_schema_content)
@@ -374,7 +378,7 @@ async def get_terms(request, term_name):
     # elif file_extension == '.jsonld':
     #     # jsonld
     #     try:
-    #         with open("............/opt/schema-standardization/terms/" + filename
+    #         with open("............./opt/schema-standardization/terms/" + filename
     #                   + '.jsonld', "r") as fa:
     #             term_schema_content = json.load(fa)
     #         context = term_schema_content['@context']
