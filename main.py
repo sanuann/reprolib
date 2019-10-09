@@ -120,7 +120,7 @@ async def determine_env(hostname):
 @app.route("/update")
 def update(request):
     import subprocess as sp
-    out = sp.run(['git', 'pull'], cwd='/opt/schema-standardization', capture_output=True)
+    out = sp.run(['git', 'pull'], cwd='../opt/schema-standardization', capture_output=True)
     if out.returncode == 0:
         logger.info(out)
     else:
@@ -130,6 +130,7 @@ def update(request):
 
 @app.route("/")
 async def test(request):
+    print(13, request.headers)
     hostname = await determine_env(request.headers['host'])
     api_list = {'activities': [], 'protocols': []}
     for activity in next(os.walk('/opt/schema-standardization/activities'))[1]:
@@ -144,33 +145,48 @@ async def test(request):
 
 @app.route('/contexts/generic')
 async def get_generic_context(request):
+    response_headers = {'Content-type': 'application/ld+json'}
     with open("/opt/schema-standardization/contexts/generic", "r") as f1:
         file_content = json.load(f1)
     new_file = await replace_url(file_content, request)
-    return response.json(new_file, ensure_ascii=False, escape_forward_slashes=False)
+    return response.json(new_file, ensure_ascii=False,
+                         escape_forward_slashes=False, headers=response_headers)
 
 
 @app.route('/activity-sets/<proto_folder>/<proto_context>')
 async def get_protocol_context(request, proto_folder, proto_context):
+    response_headers = {'Content-type': 'application/ld+json'}
     with open("/opt/schema-standardization/activity-sets/" + proto_folder + '/' +
               proto_context, "r") as f1:
         file_content = json.load(f1)
     new_file = await replace_url(file_content, request)
-    return response.json(new_file, ensure_ascii=False, escape_forward_slashes=False)
+    return response.json(new_file, ensure_ascii=False,
+                         escape_forward_slashes=False, headers=response_headers)
 
 
 @app.route('/activities/<act_folder>/<act_context>')
 async def get_activity_context(request, act_folder, act_context):
+    response_headers = {'Content-type': 'application/ld+json'}
     with open("/opt/schema-standardization/activities/" + act_folder
               + '/' + act_context, "r") as f2:
         file_content = json.load(f2)
     new_file = await replace_url(file_content, request)
-    return response.json(new_file, ensure_ascii=False, escape_forward_slashes=False)
+    return response.json(new_file, ensure_ascii=False,
+                         escape_forward_slashes=False, headers=response_headers)
 
 
 @app.route('/activities/<act_name>/items/<item_id>')
 async def get_item(request, act_name, item_id):
+    view_options = 1  # default view is html
+    response_headers = {'Content-type': 'application/ld+json'}
     filename, file_extension = os.path.splitext(item_id)
+    if request.headers.get('accept') == 'application/json':
+        view_options = 2
+    else:
+        if not file_extension:
+            view_options = 1  # html view
+        elif file_extension == '.jsonld':
+            view_options = 2
     try:
         with open("/opt/schema-standardization/activities/" + act_name
                   + '/items/' + filename, "r") as f2:
@@ -181,17 +197,27 @@ async def get_item(request, act_name, item_id):
         print('error getting contents')
         return response.text('Could not fetch data. Check item name')
 
-    if not file_extension:
+    if view_options == 1:
         # render html
         return jinja.render("field.html", request, data=new_file)
 
-    elif file_extension == '.jsonld':
-        return response.json(new_file, ensure_ascii=False, escape_forward_slashes=False)
+    elif view_options == 2:
+        return response.json(new_file, ensure_ascii=False,
+                             escape_forward_slashes=False, headers=response_headers)
 
 
 @app.route('/activities/<act_name>')
 async def get_activity(request, act_name):
+    view_options = 1 # default view is html
+    response_headers = {'Content-type': 'application/ld+json'}
     filename, file_extension = os.path.splitext(act_name)
+    if request.headers.get('accept') == 'application/json':
+        view_options = 2
+    else:
+        if not file_extension:
+            view_options = 1 # html view
+        elif file_extension == '.jsonld':
+            view_options = 2
     # act_name_lower = re.sub(r'\W+', '', filename).lower()
     try:
         for root, dirs, files in os.walk(
@@ -208,8 +234,10 @@ async def get_activity(request, act_name):
                             print('error!!')
     except ValueError:
         return response.text('Error! check activity name')
-    if not file_extension:
+
+    if view_options == 1:
         # html
+        print('html view')
         try:
             item_q = []
             for field in new_file['ui']['order']:
@@ -223,14 +251,25 @@ async def get_activity(request, act_name):
             print('error in expanded contents to render html', e)
             return response.text('Could not render data.')
 
-    elif file_extension == '.jsonld':
+    elif view_options == 2:
+        print('in json ')
         # jsonld
-        return response.json(new_file, ensure_ascii=False, escape_forward_slashes=False)
+        return response.json(new_file, ensure_ascii=False,
+                             escape_forward_slashes=False, headers=response_headers)
 
 
 @app.route('/protocols/<proto_name>')
 async def get_protocol(request, proto_name):
+    view_options = 1  # default view is html
+    response_headers = {'Content-type': 'application/ld+json'}
     filename, file_extension = os.path.splitext(proto_name)
+    if request.headers.get('accept') == 'application/json':
+        view_options = 2
+    else:
+        if not file_extension:
+            view_options = 1  # html view
+        elif file_extension == '.jsonld':
+            view_options = 2
     try:
         for root, dirs, files in os.walk(
                 '/opt/schema-standardization/activity-sets/'+ filename):
@@ -247,24 +286,40 @@ async def get_protocol(request, proto_name):
     except ValueError:
         return response.text('Error! check protocol name')
 
-    if not file_extension:
-        print('html')
+    if view_options == 1:
         # html. for time being it renders jsonld
         return response.json(new_file, ensure_ascii=False, escape_forward_slashes=False)
 
-    elif file_extension == '.jsonld':
+    elif view_options == 2:
         # jsonld
-        return response.json(new_file, ensure_ascii=False, escape_forward_slashes=False)
+        return response.json(new_file, ensure_ascii=False,
+                             escape_forward_slashes=False, headers=response_headers)
 
 
 @app.route('/terms/<term_name>')
 async def get_terms(request, term_name):
+    view_options = 1  # default view is html
+    response_headers = {'Content-type': 'application/ld+json'}
     filename, file_extension = os.path.splitext(term_name)
+    if request.headers.get('accept') == 'application/json':
+        view_options = 2
+    else:
+        if not file_extension:
+            view_options = 1  # html view
+        elif file_extension == '.jsonld':
+            view_options = 2
     with open("/opt/schema-standardization/terms/" + filename, "r") as f1:
         file_content = json.load(f1)
-    print(26, file_content)
     new_file = await replace_url(file_content, request)
-    return response.json(new_file, ensure_ascii=False, escape_forward_slashes=False)
+    if view_options == 1:
+        # html. for time being it renders jsonld
+        return response.json(new_file, ensure_ascii=False, escape_forward_slashes=False)
+
+    elif view_options == 2:
+        # jsonld
+        return response.json(new_file, ensure_ascii=False,
+                             escape_forward_slashes=False, headers=response_headers)
+
 
     # files = (file for file in os.listdir('/opt/schema-standardization/terms')
     #          if os.path.isfile(os.path.join('/opt/schema-standardization/terms',
@@ -293,7 +348,7 @@ async def get_terms(request, term_name):
     # if not file_extension:
     #     # html
     #     try:
-    #         with open("........./opt/schema-standardization/terms/" + term_name
+    #         with open("........../opt/schema-standardization/terms/" + term_name
     #                   + '.jsonld', "r") as f2:
     #             term_schema_content = json.load(f2)
     #         expanded = jsonld.expand(term_schema_content)
@@ -319,7 +374,7 @@ async def get_terms(request, term_name):
     # elif file_extension == '.jsonld':
     #     # jsonld
     #     try:
-    #         with open(".........../opt/schema-standardization/terms/" + filename
+    #         with open("............/opt/schema-standardization/terms/" + filename
     #                   + '.jsonld', "r") as fa:
     #             term_schema_content = json.load(fa)
     #         context = term_schema_content['@context']
