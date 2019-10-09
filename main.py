@@ -130,7 +130,6 @@ def update(request):
 
 @app.route("/")
 async def test(request):
-    print(13, request.headers)
     hostname = await determine_env(request.headers['host'])
     api_list = {'activities': [], 'protocols': []}
     for activity in next(os.walk('/opt/schema-standardization/activities'))[1]:
@@ -249,9 +248,12 @@ async def get_activity(request, act_name):
                 item_q.append(field_content['question'])
             new_file['ui']['order'] = item_q
             return jinja.render("activity.html", request, data=new_file)
-        except ValueError as e:
-            print('error in expanded contents to render html', e)
-            return response.text('Could not render data.')
+        except Exception as e:
+            print('error in contents to render html', e)
+            logger.error(e)
+            return response.json(new_file, ensure_ascii=False,
+                                 escape_forward_slashes=False,
+                                 headers=response_headers)
 
     elif view_options == 2:
         print('in json ')
@@ -291,7 +293,15 @@ async def get_protocol(request, proto_name):
 
     if view_options == 1:
         # html. for time being it renders jsonld
-        return response.json(new_file, ensure_ascii=False, escape_forward_slashes=False)
+        try:
+            # TODO
+            return jinja.render("field.html", request, data=new_file)
+        except Exception as e:
+            logger.error(e)
+            # if it raises an Exception then deliver the jsonld
+            return response.json(new_file, ensure_ascii=False,
+                                 escape_forward_slashes=False,
+                                 headers=response_headers)
 
     elif view_options == 2:
         # jsonld
@@ -317,7 +327,15 @@ async def get_terms(request, term_name):
     new_file = await replace_url(file_content, request)
     if view_options == 1:
         # html. for time being it renders jsonld
-        return response.json(new_file, ensure_ascii=False, escape_forward_slashes=False)
+        try:
+            # TODO
+            return jinja.render("field.html", request, data=new_file)
+        except Exception as e:
+            logger.error(e)
+            # if it raises an Exception then deliver the jsonld
+            return response.json(new_file, ensure_ascii=False,
+                                 escape_forward_slashes=False,
+                                 headers=response_headers)
 
     elif view_options == 2:
         # jsonld
@@ -352,7 +370,7 @@ async def get_terms(request, term_name):
     # if not file_extension:
     #     # html
     #     try:
-    #         with open(".........../opt/schema-standardization/terms/" + term_name
+    #         with open("............/opt/schema-standardization/terms/" + term_name
     #                   + '.jsonld', "r") as f2:
     #             term_schema_content = json.load(f2)
     #         expanded = jsonld.expand(term_schema_content)
@@ -378,7 +396,7 @@ async def get_terms(request, term_name):
     # elif file_extension == '.jsonld':
     #     # jsonld
     #     try:
-    #         with open("............./opt/schema-standardization/terms/" + filename
+    #         with open("............../opt/schema-standardization/terms/" + filename
     #                   + '.jsonld', "r") as fa:
     #             term_schema_content = json.load(fa)
     #         context = term_schema_content['@context']
