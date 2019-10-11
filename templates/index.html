@@ -1,0 +1,164 @@
+<div class="container"> <!--provides a wrapper for testing the scroll-->
+    <h2>LIST OF ACTIVITIES</h2>
+    <div class="tWrap">
+        <div class="tWrap__head">
+            <table>
+                <col span="1" class="wide">
+                <thead>
+                <tr>
+                    <th>ACTIVITY NAME</th>
+                    <th>JSON-LD</th>
+                    <th>TURTLE</th>
+                    <th>UI</th>
+                </tr>
+                </thead>
+            </table>
+        </div> <!--/.tWrap__head-->
+        <div class="tWrap__body">
+            <table>
+                <col span="1" class="wide">
+                <tbody>
+                    {% for item in data.activities %}
+                        <tr>
+                            <td><a href="{{ item.html_path }}">{{ item.name }}
+                            </a>
+                            <td><a href="{{ item.jsonld_path }}" title="JSON-LD Data"><img
+                                    style="border:0px;" width="48"
+                                    src="https://json-ld.org/images/json-ld-data-48.png"
+                                    alt="JSON-LD-logo-48"/></a>
+                            </td>
+                            <td><a href="{{ item.ttl_path }}" title="TURTLE Data"><img
+                                    style="border:0px;" width="48"
+                                    src="http://cygri.github.io/rdf-logos/svg/turtle.svg"
+                                    alt="TURTLE-logo-48"/></a>
+
+                            </td>
+                            <td><a href="{{ item.html_path }}">{{ item.name }}</a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div> <!--/.tWrap__body-->
+    </div> <!--/.tWrap-->
+    <h2>LIST OF PROTOCOLS</h2>
+    <div class="tWrap">
+        <div class="tWrap__head">
+            <table>
+                <col span="1" class="wide">
+                <thead>
+                <tr>
+                    <th>PROTOCOL NAME</th>
+                    <th>JSON-LD</th>
+                    <th>TURTLE</th>
+                    <th>UI</th>
+                </tr>
+                </thead>
+            </table>
+        </div> <!--/.tWrap__head-->
+        <div class="tWrap__body">
+            <table>
+                <col span="1" class="wide">
+                <tbody>
+                    {% for item in data.protocols %}
+                        <tr>
+                            <td><a href="{{ item.html_path }}">{{ item.name }}
+                            </a>
+                            </td>
+                            <td><a href="{{ item.jsonld_path }}" title="JSON-LD Data"><img
+                                    style="border:0px;" width="48"
+                                    src="https://json-ld.org/images/json-ld-data-48.png"
+                                    alt="JSON-LD-logo-48"/></a>
+                            </td>
+                            <td><a href="{{ item.ttl_path }}" title="TURTLE Data"><img
+                                    style="border:0px;" width="48"
+                                    src="http://cygri.github.io/rdf-logos/svg/turtle.svg"
+                                    alt="TURTLE-logo-48"/></a>
+
+                            </td>
+                            <td><a href="{{ item.html_path }}">{{ item.name }}</a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div> <!--/.tWrap__body-->
+    </div> <!--/.tWrap-->
+</div> <!--/.container-->
+
+<style>
+    .wide {
+      width: 600px;
+    }
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: sans-serif;
+        color: rgb(64, 64, 64);
+        padding: 0;
+        margin: 0;
+    }
+
+    table {
+        border-collapse: collapse;
+        table-layout: fixed;
+        width: 100%;
+        background: white;
+    }
+
+    th, td {
+        border: 1px solid lightgray;
+        padding: 8px;
+        text-align: left;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+
+        &
+        :first-child {
+            width: 90px;
+        }
+
+        &
+        :last-child {
+            text-align: right;
+            width: 60px;
+        }
+    }
+
+    th {
+        background: #006600;
+        color: white;
+        text-transform: uppercase;
+        font-weight: normal;
+    }
+
+    table tr:first-child td {
+        border-top: none;
+    }
+
+    .container {
+        background: white;
+        width: 100%;
+        padding: 24px;
+        height: auto;
+    }
+
+    .tWrap__head {
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        flex: 0 0 37px;
+        overflow-y: scroll;
+    }
+
+    .tWrap__body {
+        height: 98%;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        overflow-y: scroll;
+    }
+</style>

@@ -133,13 +133,36 @@ async def test(request):
     hostname = await determine_env(request.headers['host'])
     api_list = {'activities': [], 'protocols': []}
     for activity in next(os.walk('/opt/schema-standardization/activities'))[1]:
+        act_dict = {
+            'name': activity,
+            'html_path': request.scheme + '://' + hostname + '/activities/' +
+                         activity,
+            'jsonld_path': request.scheme + '://' + hostname + '/activities/' +
+                        activity + '.jsonld',
+            'ttl_path': request.scheme + '://' + hostname + '/activities/' +
+                        activity + '.jsonld',
+            'ui': 'link to ui'
+        }
 
-        api_list['activities'].append(request.scheme + '://' + hostname +
-                                      '/activities/' + activity)
+        api_list['activities'].append(act_dict)
+    # sort in place alphabetically
+    api_list['activities'].sort(key=lambda i: i['name'].lower())
+
     for protocol in next(os.walk('/opt/schema-standardization/activity-sets'))[1]:
-        api_list['protocols'].append(request.scheme + '://' + hostname +
-                                     '/protocols/' + protocol)
-    return jinja.render("home.html", request, data=api_list)
+        protocol_dict = {
+            'name': protocol,
+            'html_path': request.scheme + '://' + hostname + '/protocols/' +
+                         protocol,
+            'jsonld_path': request.scheme + '://' + hostname + '/protocols/' +
+                         protocol + '.jsonld',
+            'ttl_path': request.scheme + '://' + hostname + '/protocols/' +
+                         protocol + '.jsonld',
+            'ui': 'link to ui'
+        }
+        api_list['protocols'].append(protocol_dict)
+    # sort in place alphabetically
+    api_list['protocols'].sort(key=lambda i: i['name'].lower())
+    return jinja.render("index.html", request, data=api_list)
 
 
 @app.route('/contexts/generic')
@@ -370,7 +393,7 @@ async def get_terms(request, term_name):
     # if not file_extension:
     #     # html
     #     try:
-    #         with open("............/opt/schema-standardization/terms/" + term_name
+    #         with open("............./opt/schema-standardization/terms/" + term_name
     #                   + '.jsonld', "r") as f2:
     #             term_schema_content = json.load(f2)
     #         expanded = jsonld.expand(term_schema_content)
@@ -396,7 +419,7 @@ async def get_terms(request, term_name):
     # elif file_extension == '.jsonld':
     #     # jsonld
     #     try:
-    #         with open("............../opt/schema-standardization/terms/" + filename
+    #         with open(".............../opt/schema-standardization/terms/" + filename
     #                   + '.jsonld', "r") as fa:
     #             term_schema_content = json.load(fa)
     #         context = term_schema_content['@context']
