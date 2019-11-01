@@ -82,7 +82,7 @@ item_resp = {}
 
 
 async def replace_url(file_content, request):
-    gh_url = "https://raw.githubusercontent.com/ReproNim/schema-standardization/master"
+    gh_url = "https://raw.githubusercontent.com/ReproNim/reproschema/master"
     hostname = await determine_env(request.headers['host'])
     for attribute, value in file_content.items():
         # if value is str, replace substring
@@ -120,7 +120,7 @@ async def determine_env(hostname):
 @app.route("/update")
 def update(request):
     import subprocess as sp
-    out = sp.run(['git', 'pull'], cwd='/opt/schema-standardization', capture_output=True)
+    out = sp.run(['git', 'pull'], cwd='/opt/reproschema', capture_output=True)
     if out.returncode == 0:
         logger.info(out)
     else:
@@ -132,7 +132,7 @@ def update(request):
 async def test(request):
     hostname = await determine_env(request.headers['host'])
     api_list = {'activities': [], 'protocols': []}
-    for activity in next(os.walk('/opt/schema-standardization/activities'))[1]:
+    for activity in next(os.walk('/opt/reproschema/activities'))[1]:
         act_dict = {
             'name': activity,
             'html_path': request.scheme + '://' + hostname + '/activities/' +
@@ -148,7 +148,7 @@ async def test(request):
     # sort in place alphabetically
     api_list['activities'].sort(key=lambda i: i['name'].lower())
 
-    for protocol in next(os.walk('/opt/schema-standardization/activity-sets'))[1]:
+    for protocol in next(os.walk('/opt/reproschema/protocols'))[1]:
         protocol_dict = {
             'name': protocol,
             'html_path': request.scheme + '://' + hostname + '/protocols/' +
@@ -168,17 +168,17 @@ async def test(request):
 @app.route('/contexts/generic')
 async def get_generic_context(request):
     response_headers = {'Content-type': 'application/ld+json'}
-    with open("/opt/schema-standardization/contexts/generic", "r") as f1:
+    with open("/opt/reproschema/contexts/generic", "r") as f1:
         file_content = json.load(f1)
     new_file = await replace_url(file_content, request)
     return response.json(new_file, ensure_ascii=False,
                          escape_forward_slashes=False, headers=response_headers)
 
 
-@app.route('/activity-sets/<proto_folder>/<proto_context>')
+@app.route('/protocols/<proto_folder>/<proto_context>')
 async def get_protocol_context(request, proto_folder, proto_context):
     response_headers = {'Content-type': 'application/ld+json'}
-    with open("/opt/schema-standardization/activity-sets/" + proto_folder + '/' +
+    with open("/opt/reproschema/protocols/" + proto_folder + '/' +
               proto_context, "r") as f1:
         file_content = json.load(f1)
     new_file = await replace_url(file_content, request)
@@ -189,7 +189,7 @@ async def get_protocol_context(request, proto_folder, proto_context):
 @app.route('/activities/<act_folder>/<act_context>')
 async def get_activity_context(request, act_folder, act_context):
     response_headers = {'Content-type': 'application/ld+json'}
-    with open("/opt/schema-standardization/activities/" + act_folder
+    with open("/opt/reproschema/activities/" + act_folder
               + '/' + act_context, "r") as f2:
         file_content = json.load(f2)
     new_file = await replace_url(file_content, request)
@@ -211,7 +211,7 @@ async def get_item(request, act_name, item_id):
         elif file_extension == '.jsonld':
             view_options = 2
     try:
-        with open("/opt/schema-standardization/activities/" + act_name
+        with open("/opt/reproschema/activities/" + act_name
                   + '/items/' + filename, "r") as f2:
             file_content = json.load(f2)
             print(178, file_content)
@@ -245,7 +245,7 @@ async def get_activity(request, act_name):
     # act_name_lower = re.sub(r'\W+', '', filename).lower()
     try:
         for root, dirs, files in os.walk(
-                '/opt/schema-standardization/activities/' + filename):
+                '/opt/reproschema/activities/' + filename):
             for file in files:
                 if file.endswith('_schema'):
                     # print(72, root, file)
@@ -265,7 +265,7 @@ async def get_activity(request, act_name):
         try:
             item_q = []
             for field in new_file['ui']['order']:
-                with open("/opt/schema-standardization/activities/" + act_name
+                with open("/opt/reproschema/activities/" + act_name
                           + '/items/' + field, "r") as f2:
                     field_content = json.load(f2)
                 item_q.append(field_content['question'])
@@ -300,7 +300,7 @@ async def get_protocol(request, proto_name):
             view_options = 2
     try:
         for root, dirs, files in os.walk(
-                '/opt/schema-standardization/activity-sets/'+ filename):
+                '/opt/reproschema/protocols/'+ filename):
             for file in files:
                 if file.endswith('_schema'):
                     # print(72, root, file)
@@ -345,7 +345,7 @@ async def get_terms(request, term_name):
             view_options = 1  # html view
         elif file_extension == '.jsonld':
             view_options = 2
-    with open("/opt/schema-standardization/terms/" + filename, "r") as f1:
+    with open("/opt/reproschema/terms/" + filename, "r") as f1:
         file_content = json.load(f1)
     new_file = await replace_url(file_content, request)
     if view_options == 1:
