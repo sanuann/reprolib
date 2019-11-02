@@ -87,7 +87,7 @@ async def replace_url(file_content, request):
     for attribute, value in file_content.items():
         # if value is str, replace substring
         if isinstance(value, str) and gh_url in value:
-            value = value.replace(gh_url, request.scheme + '://' + hostname)
+            value = value.replace(gh_url, '//' + hostname)
             # print(107, attribute, '-', value)
             file_content[attribute] = value
         # if value is list, replace substring in list of strings
@@ -97,7 +97,7 @@ async def replace_url(file_content, request):
             for c in value:
                 if gh_url in c:
                     is_present = True
-                    c = c.replace(gh_url, request.scheme + '://' + hostname)
+                    c = c.replace(gh_url, '//' + hostname)
                     new_list.append(c)
             if is_present:
                 file_content[attribute] = new_list
@@ -135,11 +135,11 @@ async def test(request):
     for activity in next(os.walk('/opt/reproschema/activities'))[1]:
         act_dict = {
             'name': activity,
-            'html_path': request.scheme + '://' + hostname + '/activities/' +
+            'html_path': '//' + hostname + '/activities/' +
                          activity,
-            'jsonld_path': request.scheme + '://' + hostname + '/activities/' +
+            'jsonld_path': '//' + hostname + '/activities/' +
                         activity + '.jsonld',
-            'ttl_path': request.scheme + '://' + hostname + '/activities/' +
+            'ttl_path': '//' + hostname + '/activities/' +
                         activity + '.jsonld',
             'ui': 'link to ui'
         }
@@ -151,11 +151,11 @@ async def test(request):
     for protocol in next(os.walk('/opt/reproschema/protocols'))[1]:
         protocol_dict = {
             'name': protocol,
-            'html_path': request.scheme + '://' + hostname + '/protocols/' +
+            'html_path': '//' + hostname + '/protocols/' +
                          protocol,
-            'jsonld_path': request.scheme + '://' + hostname + '/protocols/' +
+            'jsonld_path': '//' + hostname + '/protocols/' +
                          protocol + '.jsonld',
-            'ttl_path': request.scheme + '://' + hostname + '/protocols/' +
+            'ttl_path': '//' + hostname + '/protocols/' +
                          protocol + '.jsonld',
             'ui': 'link to ui'
         }
