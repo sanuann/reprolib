@@ -140,7 +140,7 @@ async def test(request):
             'jsonld_path': 'https://' + hostname + '/activities/' +
                         activity + '.jsonld',
             'ttl_path': 'https://' + hostname + '/activities/' +
-                        activity + '.jsonld',
+                        activity + '.ttl',
             'ui': 'link to ui'
         }
 
@@ -231,6 +231,7 @@ async def get_item(request, act_name, item_id):
 
 @app.route('/activities/<act_name>')
 async def get_activity(request, act_name):
+    hostname = await determine_env(request.headers['host'])
     view_options = 1 # default view is html
     response_headers = {'Content-type': 'application/ld+json'}
     filename, file_extension = os.path.splitext(act_name)
@@ -242,6 +243,8 @@ async def get_activity(request, act_name):
             view_options = 1 # html view
         elif file_extension == '.jsonld':
             view_options = 2
+        elif file_extension == '.ttl':
+            view_options = 3
     # act_name_lower = re.sub(r'\W+', '', filename).lower()
     try:
         for root, dirs, files in os.walk(
@@ -283,6 +286,18 @@ async def get_activity(request, act_name):
         # jsonld
         return response.json(new_file, ensure_ascii=False,
                              escape_forward_slashes=False, headers=response_headers)
+
+    elif view_options == 3:
+        try:
+            #print('in turtle ', new_file)
+            # turtle
+            normalized_file = jsonld.normalize(
+                new_file, {'base': 'https://' + hostname + '/activities/' + filename + '/', 'algorithm': 'URDNA2015', 'format':
+                    'application/n-quads'})
+            return response.text(normalized_file, headers=response_headers)
+        except Exception as e:
+            print(e)
+            raise
 
 
 @app.route('/protocols/<proto_name>')
