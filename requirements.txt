@@ -3,3 +3,5 @@ Sanic-Cors
 PyLD
 sanic_jinja2
 PyGithub
+requests
+
