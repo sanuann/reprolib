@@ -87,7 +87,7 @@ async def replace_url(file_content, request):
     for attribute, value in file_content.items():
         # if value is str, replace substring
         if isinstance(value, str) and gh_url in value:
-            value = value.replace(gh_url, 'https://' + hostname)
+            value = value.replace(gh_url, 'http://' + hostname)
             # print(107, attribute, '-', value)
             file_content[attribute] = value
         # if value is list, replace substring in list of strings
@@ -97,7 +97,7 @@ async def replace_url(file_content, request):
             for c in value:
                 if gh_url in c:
                     is_present = True
-                    c = c.replace(gh_url, 'https://' + hostname)
+                    c = c.replace(gh_url, 'http://' + hostname)
                     new_list.append(c)
             if is_present:
                 file_content[attribute] = new_list
@@ -135,11 +135,11 @@ async def test(request):
     for activity in next(os.walk('/opt/reproschema/activities'))[1]:
         act_dict = {
             'name': activity,
-            'html_path': 'https://' + hostname + '/activities/' +
+            'html_path': 'http://' + hostname + '/activities/' +
                          activity,
-            'jsonld_path': 'https://' + hostname + '/activities/' +
+            'jsonld_path': 'http://' + hostname + '/activities/' +
                         activity + '.jsonld',
-            'ttl_path': 'https://' + hostname + '/activities/' +
+            'ttl_path': 'http://' + hostname + '/activities/' +
                         activity + '.ttl',
             'ui': 'link to ui'
         }
@@ -250,8 +250,8 @@ async def get_activity(request, act_name):
         for root, dirs, files in os.walk(
                 '/opt/reproschema/activities/' + filename):
             for file in files:
-                if file.endswith('_schema'):
-                    # print(72, root, file)
+                if file == filename+'_schema':
+                    print(72, root, file)
                     with open(os.path.join(root, file), "r") as fa:
                         try:
                             file_content = json.load(fa)
