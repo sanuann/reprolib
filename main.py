@@ -87,7 +87,7 @@ async def replace_url(file_content, request):
     for attribute, value in file_content.items():
         # if value is str, replace substring
         if isinstance(value, str) and gh_url in value:
-            value = value.replace(gh_url, 'http://' + hostname)
+            value = value.replace(gh_url, 'https://' + hostname)
             # print(107, attribute, '-', value)
             file_content[attribute] = value
         # if value is list, replace substring in list of strings
@@ -97,7 +97,7 @@ async def replace_url(file_content, request):
             for c in value:
                 if gh_url in c:
                     is_present = True
-                    c = c.replace(gh_url, 'http://' + hostname)
+                    c = c.replace(gh_url, 'https://' + hostname)
                     new_list.append(c)
             if is_present:
                 file_content[attribute] = new_list
@@ -135,11 +135,11 @@ async def test(request):
     for activity in next(os.walk('/opt/reproschema/activities'))[1]:
         act_dict = {
             'name': activity,
-            'html_path': 'http://' + hostname + '/activities/' +
+            'html_path': 'https://' + hostname + '/activities/' +
                          activity,
-            'jsonld_path': 'http://' + hostname + '/activities/' +
+            'jsonld_path': 'https://' + hostname + '/activities/' +
                         activity + '.jsonld',
-            'ttl_path': 'http://' + hostname + '/activities/' +
+            'ttl_path': 'https://' + hostname + '/activities/' +
                         activity + '.ttl',
             'ui': 'link to ui'
         }
@@ -421,7 +421,7 @@ async def get_terms(request, term_name):
     #         # print(180,item_q)
     #         activity = {
     #             'prefLabel': expanded[0][
-    #                 'http://www.w3.org/2004/02/skos/core#prefLabel'][0]['@value'],
+    #                 'https://www.w3.org/2004/02/skos/core#prefLabel'][0]['@value'],
     #             'preamble': expanded[0]['https://schema.repronim.org/preamble'][0][
     #                 '@value'],
     #             'order': item_q,
