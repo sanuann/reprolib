@@ -451,6 +451,13 @@ async def get_terms(request, term_name):
     #         print('Could not fetch term file')
     #         return response.text('Could not fetch data. Check term name')
 
+@app.route('/resources/<r_name>')
+async def get_resources(request, r_name):
+    response_headers = {'Content-type': 'application/ld+json'}
+    with open("/opt/reproschema/resources/" + r_name, "r") as f1:
+        file_content = json.load(f1)
+        return response.json(file_content, ensure_ascii=False,
+                         escape_forward_slashes=False, headers=response_headers)
 
 if __name__ == "__main__":
     logger.info("Starting reprolib-server")
