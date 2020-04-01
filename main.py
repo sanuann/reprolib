@@ -141,7 +141,7 @@ async def test(request):
                         activity + '.jsonld',
             'ttl_path': 'https://' + hostname + '/activities/' +
                         activity + '.ttl',
-            'ui': 'link to ui'
+            'ui': 'https://schema.repronim.org/ui/#/activities/0/?url='+'https://' + hostname + '/activities/' + activity
         }
 
         api_list['activities'].append(act_dict)
@@ -157,7 +157,7 @@ async def test(request):
                          protocol + '.jsonld',
             'ttl_path': 'https://' + hostname + '/protocols/' +
                          protocol + '.jsonld',
-            'ui': 'link to ui'
+            'ui': 'https://schema.repronim.org/ui/#/?url='+'https://' + hostname + '/protocols/' + protocol
         }
         api_list['protocols'].append(protocol_dict)
     # sort in place alphabetically
@@ -235,6 +235,7 @@ async def get_activity(request, act_name):
     view_options = 1 # default view is html
     response_headers = {'Content-type': 'application/ld+json'}
     filename, file_extension = os.path.splitext(act_name)
+    activity_name = re.sub('[^A-Za-z0-9]+', '', filename) #remove special characters
     if request.headers.get('accept') == 'application/json' or \
             request.headers.get('accept') == 'application/ld+json':
         view_options = 2
@@ -250,13 +251,11 @@ async def get_activity(request, act_name):
         for root, dirs, files in os.walk(
                 '/opt/reproschema/activities/' + filename):
             for file in files:
-                if file == filename+'_schema':
-                    print(72, root, file)
+                if file == activity_name+'_schema':
                     with open(os.path.join(root, file), "r") as fa:
                         try:
                             file_content = json.load(fa)
                             new_file = await replace_url(file_content, request)
-                            # print(122, new_file)
                         except ValueError:
                             print('error!!')
     except ValueError:
@@ -380,76 +379,6 @@ async def get_terms(request, term_name):
         return response.json(new_file, ensure_ascii=False,
                              escape_forward_slashes=False, headers=response_headers)
 
-
-    # files = (file for file in os.listdir('/opt/schema-standardization/terms')
-    #          if os.path.isfile(os.path.join('/opt/schema-standardization/terms',
-    #                                         file)))
-    # for file in files:
-    #     with open(os.path.join('/opt/schema-standardization/terms', file), "r") as fa:
-    #         try:
-    #             file_content = json.load(fa)
-    #             if '@id' in file_content and file_content['@id'] == filename:
-    #                 # get the file with matching @id and exit loop
-    #                 term_schema_content = file_content
-    #                 break
-    #         except ValueError as e:
-    #             print('not json file', e)
-    # context = term_schema_content['@context']
-    # if isinstance(context, dict) is False:
-    #     term_schema_content['@context'] = []
-    #     for c in context:
-    #         c = c.replace(
-    #             'https://raw.githubusercontent.com/ReproNim/schema'
-    #             '-standardization/master',
-    #             'https://sig.mit.edu/rl')
-    #         term_schema_content['@context'].append(c)
-    # return response.json(term_schema_content, ensure_ascii=False, escape_forward_slashes=False)
-
-    # if not file_extension:
-    #     # html
-    #     try:
-    #         with open("............./opt/schema-standardization/terms/" + term_name
-    #                   + '.jsonld', "r") as f2:
-    #             term_schema_content = json.load(f2)
-    #         expanded = jsonld.expand(term_schema_content)
-    #         item_q = []
-    #         for field in expanded[0]['https://schema.repronim.org/order'][0][
-    #             '@list']:
-    #             fc = requests.get(field['@id'])  # fetch from local repo??
-    #             field_json = fc.json()
-    #             item_q.append(field_json['question'])
-    #         # print(180,item_q)
-    #         activity = {
-    #             'prefLabel': expanded[0][
-    #                 'https://www.w3.org/2004/02/skos/core#prefLabel'][0]['@value'],
-    #             'preamble': expanded[0]['https://schema.repronim.org/preamble'][0][
-    #                 '@value'],
-    #             'order': item_q,
-    #         }
-    #         return jinja.render("activity.html", request, data=activity)
-    #     except:
-    #         print('error getting contents')
-    #         return response.text('Could not fetch data. Check activity name1')
-    #
-    # elif file_extension == '.jsonld':
-    #     # jsonld
-    #     try:
-    #         with open(".............../opt/schema-standardization/terms/" + filename
-    #                   + '.jsonld', "r") as fa:
-    #             term_schema_content = json.load(fa)
-    #         context = term_schema_content['@context']
-    #         if isinstance(context, dict) is False:
-    #             term_schema_content['@context'] = []
-    #             for c in context:
-    #                 c = c.replace(
-    #                     'https://raw.githubusercontent.com/ReproNim/schema'
-    #                     '-standardization/master',
-    #                     'https://sig.mit.edu/rl')
-    #                 term_schema_content['@context'].append(c)
-    #         return response.json(term_schema_content, ensure_ascii=False, escape_forward_slashes=False)
-    #     except:
-    #         print('Could not fetch term file')
-    #         return response.text('Could not fetch data. Check term name')
 
 @app.route('/resources/<r_name>')
 async def get_resources(request, r_name):

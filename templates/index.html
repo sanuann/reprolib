@@ -8,8 +8,6 @@
                 <tr>
                     <th>ACTIVITY NAME</th>
                     <th>JSON-LD</th>
-                    <th>TURTLE</th>
-                    <th>UI</th>
                 </tr>
                 </thead>
             </table>
@@ -20,21 +18,20 @@
                 <tbody>
                     {% for item in data.activities %}
                         <tr>
-                            <td><a href="{{ item.html_path }}">{{ item.name }}
+                            <td><a href="{{ item.ui }}">{{ item.name }}
                             </a>
                             <td><a href="{{ item.jsonld_path }}" title="JSON-LD Data"><img
                                     style="border:0px;" width="48"
                                     src="https://json-ld.org/images/json-ld-data-48.png"
                                     alt="JSON-LD-logo-48"/></a>
                             </td>
-                            <td><a href="{{ item.ttl_path }}" title="TURTLE Data"><img
-                                    style="border:0px;" width="48"
-                                    src="http://cygri.github.io/rdf-logos/svg/turtle.svg"
-                                    alt="TURTLE-logo-48"/></a>
-
-                            </td>
-                            <td><a href="{{ item.html_path }}">{{ item.name }}</a>
-                            </td>
+{#                            <td><a href="{{ item.ttl_path }}" title="TURTLE Data"><img#}
+{#                                    style="border:0px;" width="48"#}
+{#                                    src="http://cygri.github.io/rdf-logos/svg/turtle.svg"#}
+{#                                    alt="TURTLE-logo-48"/></a>#}
+{#                            </td>#}
+{#                            <td><a href="{{ item.html_path }}">{{ item.name }}</a>#}
+{#                            </td>#}
                         </tr>
                     {% endfor %}
                 </tbody>
@@ -50,8 +47,6 @@
                 <tr>
                     <th>PROTOCOL NAME</th>
                     <th>JSON-LD</th>
-                    <th>TURTLE</th>
-                    <th>UI</th>
                 </tr>
                 </thead>
             </table>
@@ -70,13 +65,13 @@
                                     src="https://json-ld.org/images/json-ld-data-48.png"
                                     alt="JSON-LD-logo-48"/></a>
                             </td>
-                            <td><a href="{{ item.ttl_path }}" title="TURTLE Data"><img
-                                    style="border:0px;" width="48"
-                                    src="http://cygri.github.io/rdf-logos/svg/turtle.svg"
-                                    alt="TURTLE-logo-48"/></a>
-
-                            </td>
-                            <td><a href="{{ item.html_path }}">{{ item.name }}</a>
+{#                            <td><a href="{{ item.ttl_path }}" title="TURTLE Data"><img#}
+{#                                    style="border:0px;" width="48"#}
+{#                                    src="http://cygri.github.io/rdf-logos/svg/turtle.svg"#}
+{#                                    alt="TURTLE-logo-48"/></a>#}
+{##}
+{#                            </td>#}
+{#                            <td><a href="{{ item.html_path }}">{{ item.name }}</a>#}
                             </td>
                         </tr>
                     {% endfor %}
