@@ -255,7 +255,7 @@ async def get_activity(request, act_name):
     # act_name_lower = re.sub(r'\W+', '', filename).lower()
     try:
         for root, dirs, files in os.walk(
-                '/opt/reproschema/activities/' + filename):
+                '/opt/reproschema/activities/' + activity_dir):
             for file in files:
                 if file == activity_name:
                     with open(os.path.join(root, file), "r") as fa:
