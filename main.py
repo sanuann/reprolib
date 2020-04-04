@@ -235,7 +235,13 @@ async def get_activity(request, act_name):
     view_options = 1 # default view is html
     response_headers = {'Content-type': 'application/ld+json'}
     filename, file_extension = os.path.splitext(act_name)
-    activity_name = re.sub('[^A-Za-z0-9]+', '', filename) #remove special characters
+    if '_schema' in filename:
+        activity_dir = filename.split('_schema')[0]
+        activity_name = filename
+    else:
+        activity_dir = filename
+        activity_name = re.sub('[^A-Za-z0-9]+', '', filename)+'_schema' #remove special characters
+
     if request.headers.get('accept') == 'application/json' or \
             request.headers.get('accept') == 'application/ld+json':
         view_options = 2
@@ -251,7 +257,7 @@ async def get_activity(request, act_name):
         for root, dirs, files in os.walk(
                 '/opt/reproschema/activities/' + filename):
             for file in files:
-                if file == activity_name+'_schema':
+                if file == activity_name:
                     with open(os.path.join(root, file), "r") as fa:
                         try:
                             file_content = json.load(fa)
