@@ -3,6 +3,7 @@ from sanic import response
 from sanic.log import logger
 from pyld import jsonld
 from sanic_jinja2 import SanicJinja2
+from difflib import get_close_matches
 import requests
 import json
 import re
@@ -79,7 +80,7 @@ CORS(app)
 
 jinja = SanicJinja2(app)
 item_resp = {}
-
+activity_map = {}
 
 async def replace_url(file_content, request):
     gh_url = "https://raw.githubusercontent.com/ReproNim/reproschema/master"
@@ -145,6 +146,7 @@ async def test(request):
         }
 
         api_list['activities'].append(act_dict)
+
     # sort in place alphabetically
     api_list['activities'].sort(key=lambda i: i['name'].lower())
 
@@ -232,15 +234,41 @@ async def get_item(request, act_name, item_id):
 @app.route('/activities/<act_name>')
 async def get_activity(request, act_name):
     hostname = await determine_env(request.headers['host'])
+    filename, file_extension = os.path.splitext(act_name)
+
+    for activity in next(os.walk('./opt/reproschema/activities'))[1]:
+        # print(136, activity, next(os.walk('./opt/reproschema/activities/' + activity)))
+        act_walks = next(os.walk('./opt/reproschema/activities/' + activity))
+
+        for file in act_walks[2]: # loop over all files in the activity directory
+            if file.endswith('_schema'):
+                # print(150, file, os.path.join(act_walks[0], file))
+                with open(os.path.join(act_walks[0], file), "r") as fa:
+                    try:
+                        act_schema = json.load(fa)
+                        # print(155, act_schema['@id'])
+                        activity_map[act_schema['@id']] = os.path.join(act_walks[0], file)
+                    except Exception as e:
+                        logger.error('error in json', file, e)
+    matched_id = get_close_matches(filename, list(activity_map.keys()), 3, 0.2)[0]
+    # print(269, activity_map[matched_id]) # returns path of matched file id
+
+    with open(activity_map[matched_id], "r") as f5:
+        try:
+            file_content = json.load(f5)
+            new_file = await replace_url(file_content, request)
+        except ValueError:
+            print('error!!')
+
+
     view_options = 1 # default view is html
     response_headers = {'Content-type': 'application/ld+json'}
-    filename, file_extension = os.path.splitext(act_name)
-    if '_schema' in filename:
-        activity_dir = filename.split('_schema')[0]
-        activity_name = filename
-    else:
-        activity_dir = filename
-        activity_name = re.sub('[^A-Za-z0-9]+', '', filename)+'_schema' #remove special characters
+    # if '_schema' in filename:
+    #     activity_dir = filename.split('_schema')[0]
+    #     activity_name = filename
+    # else:
+    #     activity_dir = filename
+    #     activity_name = re.sub('[^A-Za-z0-9]+', '', filename)+'_schema' #remove special characters
 
     if request.headers.get('accept') == 'application/json' or \
             request.headers.get('accept') == 'application/ld+json':
@@ -253,19 +281,19 @@ async def get_activity(request, act_name):
         elif file_extension == '.ttl':
             view_options = 3
     # act_name_lower = re.sub(r'\W+', '', filename).lower()
-    try:
-        for root, dirs, files in os.walk(
-                '/opt/reproschema/activities/' + activity_dir):
-            for file in files:
-                if file == activity_name:
-                    with open(os.path.join(root, file), "r") as fa:
-                        try:
-                            file_content = json.load(fa)
-                            new_file = await replace_url(file_content, request)
-                        except ValueError:
-                            print('error!!')
-    except ValueError:
-        return response.text('Error! check activity name')
+    # try:
+    #     for root, dirs, files in os.walk(
+    #             './opt/reproschema/activities/' + activity_dir):
+    #         for file in files:
+    #             if file == activity_name:
+    #                 with open(os.path.join(root, file), "r") as fa:
+    #                     try:
+    #                         file_content = json.load(fa)
+    #                         new_file = await replace_url(file_content, request)
+    #                     except ValueError:
+    #                         print('error!!')
+    # except ValueError:
+    #     return response.text('Error! check activity name')
 
     if view_options == 1:
         # html
