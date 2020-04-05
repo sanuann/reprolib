@@ -236,9 +236,9 @@ async def get_activity(request, act_name):
     hostname = await determine_env(request.headers['host'])
     filename, file_extension = os.path.splitext(act_name)
 
-    for activity in next(os.walk('./opt/reproschema/activities'))[1]:
-        # print(136, activity, next(os.walk('./opt/reproschema/activities/' + activity)))
-        act_walks = next(os.walk('./opt/reproschema/activities/' + activity))
+    for activity in next(os.walk('/opt/reproschema/activities'))[1]:
+        # print(136, activity, next(os.walk('/opt/reproschema/activities/' + activity)))
+        act_walks = next(os.walk('/opt/reproschema/activities/' + activity))
 
         for file in act_walks[2]: # loop over all files in the activity directory
             if file.endswith('_schema'):
