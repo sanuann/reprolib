@@ -263,15 +263,9 @@ async def get_activity(request, act_name):
 
     view_options = 1 # default view is html
     response_headers = {'Content-type': 'application/ld+json'}
-    # if '_schema' in filename:
-    #     activity_dir = filename.split('_schema')[0]
-    #     activity_name = filename
-    # else:
-    #     activity_dir = filename
-    #     activity_name = re.sub('[^A-Za-z0-9]+', '', filename)+'_schema' #remove special characters
 
-    if request.headers.get('accept') == 'application/json' or \
-            request.headers.get('accept') == 'application/ld+json':
+    if 'application/json' in request.headers.get('accept') or \
+            'application/ld+json' in request.headers.get('accept'):
         view_options = 2
     else:
         if not file_extension:
@@ -280,20 +274,6 @@ async def get_activity(request, act_name):
             view_options = 2
         elif file_extension == '.ttl':
             view_options = 3
-    # act_name_lower = re.sub(r'\W+', '', filename).lower()
-    # try:
-    #     for root, dirs, files in os.walk(
-    #             './opt/reproschema/activities/' + activity_dir):
-    #         for file in files:
-    #             if file == activity_name:
-    #                 with open(os.path.join(root, file), "r") as fa:
-    #                     try:
-    #                         file_content = json.load(fa)
-    #                         new_file = await replace_url(file_content, request)
-    #                     except ValueError:
-    #                         print('error!!')
-    # except ValueError:
-    #     return response.text('Error! check activity name')
 
     if view_options == 1:
         # html
@@ -338,8 +318,8 @@ async def get_protocol(request, proto_name):
     view_options = 1  # default view is html
     response_headers = {'Content-type': 'application/ld+json'}
     filename, file_extension = os.path.splitext(proto_name)
-    if request.headers.get('accept') == 'application/json' or \
-            request.headers.get('accept') == 'application/ld+json':
+    if 'application/json' in request.headers.get('accept')  or \
+            'application/ld+json' in request.headers.get('accept'):
         view_options = 2
     else:
         if not file_extension:
