@@ -143,14 +143,17 @@ async def test(request):
                 with open(os.path.join(act_walks[0], file), "r") as fa:
                     try:
                         act_schema = json.load(fa)
-                        # print(155, act_schema['@id'])
+                        if act_schema['@id'] == 'AdultADHDClinicalDiagnosticScale_schema':
+                            print(147, act_schema['@id'])
+                            print(149, act_schema['skos:prefLabel'])
                         if 'skos:prefLabel' in act_schema:
                             activityPrefLabel_map[activity] = act_schema['skos:prefLabel']
                         else: activityPrefLabel_map[activity] = act_schema['prefLabel']
                     except Exception as e:
-                        print(149, 'error ---', file, e)
+                        print(153, 'error ---', file, e)
                         # logger.error('error in json', file, e)
         if activity in activityPrefLabel_map:
+            print(156, activityPrefLabel_map[activity])
             prefLabel = activityPrefLabel_map[activity]
         else: prefLabel = activity
         act_dict = {
@@ -272,7 +275,8 @@ async def get_item(request, act_name, item_id):
 async def get_activity(request, act_name):
     hostname = await determine_env(request.headers['host'])
     filename, file_extension = os.path.splitext(act_name)
-
+    if not file_extension:
+        file_extension = '.jsonld'
     for activity in next(os.walk('/opt/reproschema/activities'))[1]:
         # print(136, activity, next(os.walk('/opt/reproschema/activities/' + activity)))
         act_walks = next(os.walk('/opt/reproschema/activities/' + activity))
@@ -297,41 +301,41 @@ async def get_activity(request, act_name):
         except ValueError:
             print('error!!')
 
-
-    view_options = 1 # default view is html
+    view_options = 2  # default view is html
     response_headers = {'Content-type': 'application/ld+json'}
 
     if 'application/json' in request.headers.get('accept') or \
             'application/ld+json' in request.headers.get('accept'):
         view_options = 2
     else:
-        if not file_extension:
-            view_options = 1 # html view
-        elif file_extension == '.jsonld':
+        # if not file_extension:
+        #     #view_options = 1 # html view
+        #     file_extension = '.jsonld'
+        if file_extension == '.jsonld':
             view_options = 2
         elif file_extension == '.ttl':
             view_options = 3
 
-    if view_options == 1:
-        # html
-        print('html view')
-        try:
-            item_q = []
-            for field in new_file['ui']['order']:
-                with open("/opt/reproschema/activities/" + act_name
-                          + '/items/' + field, "r") as f2:
-                    field_content = json.load(f2)
-                item_q.append(field_content['question'])
-            new_file['ui']['order'] = item_q
-            return jinja.render("activity.html", request, data=new_file)
-        except Exception as e:
-            print('error in contents to render html', e)
-            logger.error(e)
-            return response.json(new_file, ensure_ascii=False,
-                                 escape_forward_slashes=False,
-                                 headers=response_headers)
+    # if view_options == 1:
+    #     # html
+    #     print('html view')
+    #     try:
+    #         item_q = []
+    #         for field in new_file['ui']['order']:
+    #             with open("/opt/reproschema/activities/" + act_name
+    #                       + '/items/' + field, "r") as f2:
+    #                 field_content = json.load(f2)
+    #             item_q.append(field_content['question'])
+    #         new_file['ui']['order'] = item_q
+    #         return jinja.render("activity.html", request, data=new_file)
+    #     except Exception as e:
+    #         print('error in contents to render html', e)
+    #         logger.error(e)
+    #         return response.json(new_file, ensure_ascii=False,
+    #                              escape_forward_slashes=False,
+    #                              headers=response_headers)
 
-    elif view_options == 2:
+    if view_options == 2:
         print('in json ')
         # jsonld
         return response.json(new_file, ensure_ascii=False,
@@ -352,16 +356,19 @@ async def get_activity(request, act_name):
 
 @app.route('/protocols/<proto_name>')
 async def get_protocol(request, proto_name):
-    view_options = 1  # default view is html
+    # view_options = 1  # default view is html
+    view_options = 2 # make jsonld default for now
     response_headers = {'Content-type': 'application/ld+json'}
     filename, file_extension = os.path.splitext(proto_name)
+    if not file_extension:
+        file_extension = '.jsonld'
     if 'application/json' in request.headers.get('accept')  or \
             'application/ld+json' in request.headers.get('accept'):
         view_options = 2
     else:
-        if not file_extension:
-            view_options = 1  # html view
-        elif file_extension == '.jsonld':
+        # if not file_extension:
+        #     view_options = 1  # html view
+        if file_extension == '.jsonld':
             view_options = 2
     try:
         for root, dirs, files in os.walk(
@@ -379,19 +386,19 @@ async def get_protocol(request, proto_name):
     except ValueError:
         return response.text('Error! check protocol name')
 
-    if view_options == 1:
-        # html. for time being it renders jsonld
-        try:
-            # TODO
-            return jinja.render("field.html", request, data=new_file)
-        except Exception as e:
-            logger.error(e)
-            # if it raises an Exception then deliver the jsonld
-            return response.json(new_file, ensure_ascii=False,
-                                 escape_forward_slashes=False,
-                                 headers=response_headers)
+    # if view_options == 1:
+    #     # html. for time being it renders jsonld
+    #     try:
+    #         # TODO
+    #         return jinja.render("field.html", request, data=new_file)
+    #     except Exception as e:
+    #         logger.error(e)
+    #         # if it raises an Exception then deliver the jsonld
+    #         return response.json(new_file, ensure_ascii=False,
+    #                              escape_forward_slashes=False,
+    #                              headers=response_headers)
 
-    elif view_options == 2:
+    if view_options == 2:
         # jsonld
         return response.json(new_file, ensure_ascii=False,
                              escape_forward_slashes=False, headers=response_headers)
@@ -399,36 +406,40 @@ async def get_protocol(request, proto_name):
 
 @app.route('/terms/<term_name>')
 async def get_terms(request, term_name):
-    view_options = 1  # default view is html
+    # view_options = 1  # default view is html
+    view_options = 2  # make jsonld default for now
     response_headers = {'Content-type': 'application/ld+json'}
     filename, file_extension = os.path.splitext(term_name)
+    if not file_extension:
+        file_extension = '.jsonld'
     if request.headers.get('accept') == 'application/json' or \
             request.headers.get('accept') == 'application/ld+json':
         view_options = 2
     else:
-        if not file_extension:
-            view_options = 1  # html view
-        elif file_extension == '.jsonld':
+        # if not file_extension:
+        #     view_options = 1  # html view
+        if file_extension == '.jsonld':
             view_options = 2
     with open("/opt/reproschema/terms/" + filename, "r") as f1:
         file_content = json.load(f1)
     new_file = await replace_url(file_content, request)
-    if view_options == 1:
-        # html. for time being it renders jsonld
-        try:
-            # TODO
-            return jinja.render("field.html", request, data=new_file)
-        except Exception as e:
-            logger.error(e)
-            # if it raises an Exception then deliver the jsonld
-            return response.json(new_file, ensure_ascii=False,
-                                 escape_forward_slashes=False,
-                                 headers=response_headers)
 
-    elif view_options == 2:
+    if view_options == 2:
         # jsonld
         return response.json(new_file, ensure_ascii=False,
                              escape_forward_slashes=False, headers=response_headers)
+
+    # if view_options == 1:
+    #     # html. for time being it renders jsonld
+    #     try:
+    #         # TODO
+    #         return jinja.render("field.html", request, data=new_file)
+    #     except Exception as e:
+    #         logger.error(e)
+    #         # if it raises an Exception then deliver the jsonld
+    #         return response.json(new_file, ensure_ascii=False,
+    #                              escape_forward_slashes=False,
+    #                              headers=response_headers)
 
 
 @app.route('/resources/<r_name>')
