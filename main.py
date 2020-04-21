@@ -81,6 +81,8 @@ CORS(app)
 jinja = SanicJinja2(app)
 item_resp = {}
 activity_map = {}
+activityPrefLabel_map = {}
+protocolPrefLabel_map = {}
 
 async def replace_url(file_content, request):
     gh_url = "https://raw.githubusercontent.com/ReproNim/reproschema/master"
@@ -134,8 +136,25 @@ async def test(request):
     hostname = await determine_env(request.headers['host'])
     api_list = {'activities': [], 'protocols': []}
     for activity in next(os.walk('/opt/reproschema/activities'))[1]:
+        act_walks = next(os.walk('/opt/reproschema/activities/' + activity))
+        activityAlphaNum = re.sub('[^A-Za-z0-9]+', '', activity)  # keep only alphanumeric characters
+        for file in act_walks[2]:  # loop over all files in the activity directory
+            if file.endswith('_schema') and (file == activity+'_schema' or file == activity.lower()+'_schema' or file == activityAlphaNum+'_schema'):
+                with open(os.path.join(act_walks[0], file), "r") as fa:
+                    try:
+                        act_schema = json.load(fa)
+                        # print(155, act_schema['@id'])
+                        if 'skos:prefLabel' in act_schema:
+                            activityPrefLabel_map[activity] = act_schema['skos:prefLabel']
+                        else: activityPrefLabel_map[activity] = act_schema['prefLabel']
+                    except Exception as e:
+                        print(149, 'error ---', file, e)
+                        # logger.error('error in json', file, e)
+        if activity in activityPrefLabel_map:
+            prefLabel = activityPrefLabel_map[activity]
+        else: prefLabel = activity
         act_dict = {
-            'name': activity,
+            'name': prefLabel,
             'html_path': 'https://' + hostname + '/activities/' +
                          activity,
             'jsonld_path': 'https://' + hostname + '/activities/' +
@@ -151,8 +170,26 @@ async def test(request):
     api_list['activities'].sort(key=lambda i: i['name'].lower())
 
     for protocol in next(os.walk('/opt/reproschema/protocols'))[1]:
+        protocol_walks = next(os.walk('/opt/reproschema/protocols/' + protocol))
+        protocolAlphaNum = re.sub('[^A-Za-z0-9]+', '', protocol)  # keep only alphanumeric characters
+        for file in protocol_walks[2]:  # loop over all files in the protocol directory
+            if file.endswith('_schema') and (
+                    file == protocol + '_schema' or file == protocol.lower() + '_schema' or file == protocolAlphaNum + '_schema'):
+                with open(os.path.join(protocol_walks[0], file), "r") as fp:
+                    try:
+                        protocol_schema = json.load(fp)
+                        # print(155, act_schema['@id'])
+                        protocolPrefLabel_map[protocol] = protocol_schema['skos:prefLabel']
+                    except Exception as e:
+                        print(181, 'error', file, e)
+                        # logger.error('error in json', file, e)
+        if protocol in protocolPrefLabel_map:
+            protocol_pref_label = protocolPrefLabel_map[protocol]
+        else:
+            protocol_pref_label = protocol
+
         protocol_dict = {
-            'name': protocol,
+            'name': protocol_pref_label,
             'html_path': 'https://' + hostname + '/protocols/' +
                          protocol,
             'jsonld_path': 'https://' + hostname + '/protocols/' +
