@@ -241,32 +241,34 @@ async def get_activity_context(request, act_folder, act_context):
 
 @app.route('/activities/<act_name>/items/<item_id>')
 async def get_item(request, act_name, item_id):
-    view_options = 1  # default view is html
+    view_options = 2  # default view is jsonld
     response_headers = {'Content-type': 'application/ld+json'}
     filename, file_extension = os.path.splitext(item_id)
+    if not file_extension:
+        file_extension = '.jsonld'
     if request.headers.get('accept') == 'application/json' or \
             request.headers.get('accept') == 'application/ld+json':
         view_options = 2
     else:
-        if not file_extension:
-            view_options = 1  # html view
-        elif file_extension == '.jsonld':
+        # if not file_extension:
+        #     view_options = 1  # html view
+        if file_extension == '.jsonld':
             view_options = 2
     try:
         with open("/opt/reproschema/activities/" + act_name
                   + '/items/' + filename, "r") as f2:
             file_content = json.load(f2)
-            print(178, file_content)
+            # print(178, file_content)
             new_file = await replace_url(file_content, request)
     except:
         print('error getting contents')
         return response.text('Could not fetch data. Check item name')
 
-    if view_options == 1:
-        # render html
-        return jinja.render("field.html", request, data=new_file)
+    # if view_options == 1:
+    #     # render html
+    #     return jinja.render("field.html", request, data=new_file)
 
-    elif view_options == 2:
+    if view_options == 2:
         return response.json(new_file, ensure_ascii=False,
                              escape_forward_slashes=False, headers=response_headers)
 
