@@ -143,17 +143,16 @@ async def test(request):
                 with open(os.path.join(act_walks[0], file), "r") as fa:
                     try:
                         act_schema = json.load(fa)
-                        if act_schema['@id'] == 'AdultADHDClinicalDiagnosticScale_schema':
-                            print(147, act_schema['@id'])
-                            print(149, act_schema['skos:prefLabel'])
                         if 'skos:prefLabel' in act_schema:
-                            activityPrefLabel_map[activity] = act_schema['skos:prefLabel']
+                            if isinstance(act_schema['skos:prefLabel'], str):
+                                activityPrefLabel_map[activity] = act_schema['skos:prefLabel']
+                            else:
+                                activityPrefLabel_map[activity] = act_schema['skos:prefLabel']['en']
                         else: activityPrefLabel_map[activity] = act_schema['prefLabel']
                     except Exception as e:
                         print(153, 'error ---', file, e)
                         # logger.error('error in json', file, e)
         if activity in activityPrefLabel_map:
-            print(156, activityPrefLabel_map[activity])
             prefLabel = activityPrefLabel_map[activity]
         else: prefLabel = activity
         act_dict = {
@@ -181,7 +180,6 @@ async def test(request):
                 with open(os.path.join(protocol_walks[0], file), "r") as fp:
                     try:
                         protocol_schema = json.load(fp)
-                        # print(155, act_schema['@id'])
                         protocolPrefLabel_map[protocol] = protocol_schema['skos:prefLabel']
                     except Exception as e:
                         print(181, 'error', file, e)
