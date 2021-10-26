@@ -10,6 +10,9 @@ import re
 import os, sys
 from sanic_cors import CORS
 
+production = 'DEV8dac6d02a913' not in os.environ
+basedir = '/vagrant'
+basedir = basedir if production else os.getcwd()
 LOG_SETTINGS = dict(
     version=1,
     disable_existing_loggers=False,
@@ -46,17 +49,17 @@ LOG_SETTINGS = dict(
         },
         "consolefile": {
             'class': 'logging.FileHandler',
-            'filename': "/vagrant/reprolib/console.log",
+            'filename': os.path.join(basedir, "reprolib", "console.log"),
             "formatter": "generic",
         },
         "error_consolefile": {
             'class': 'logging.FileHandler',
-            'filename': "/vagrant/reprolib/error.log",
+            'filename': os.path.join(basedir, "reprolib", "error.log"),
             "formatter": "generic",
         },
         "access_consolefile": {
             'class': 'logging.FileHandler',
-            'filename': "/vagrant/reprolib/access.log",
+            'filename': os.path.join(basedir, "reprolib", "access.log"),
             "formatter": "access",
         },
     },
