@@ -75,7 +75,7 @@ LOG_SETTINGS = dict(
     },
 )
 
-app = Sanic(log_config=LOG_SETTINGS)
+app = Sanic("reprolib", log_config=LOG_SETTINGS)
 CORS(app)
 
 jinja = SanicJinja2(app)
