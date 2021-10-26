@@ -13,7 +13,7 @@ from sanic_cors import CORS
 production = 'DEV8dac6d02a913' not in os.environ
 basedir = '/vagrant'
 basedir = basedir if production else os.getcwd()
-logdir = os.path.join((basedir, "reprolib"))
+logdir = os.path.join(basedir, "reprolib")
 if not os.path.exists(logdir):
     os.makedirs(logdir, exist_ok=True)
 
