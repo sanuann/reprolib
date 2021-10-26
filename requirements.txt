@@ -4,4 +4,6 @@ PyLD==1.0.5
 sanic_jinja2
 PyGithub
 requests
+reproschema
+
 
