@@ -142,8 +142,8 @@ def update(request):
 async def test(request):
     hostname = await determine_env(request.headers['host'])
     api_list = {'activities': [], 'protocols': []}
-    for activity in next(os.walk('/opt/reproschema/activities'))[1]:
-        act_walks = next(os.walk('/opt/reproschema/activities/' + activity))
+    for activity in next(os.walk('/opt/reproschema-library/activities'))[1]:
+        act_walks = next(os.walk('/opt/reproschema-library/activities/' + activity))
         activityAlphaNum = re.sub('[^A-Za-z0-9]+', '', activity)  # keep only alphanumeric characters
         for file in act_walks[2]:  # loop over all files in the activity directory
             if file.endswith('_schema') and (file == activity+'_schema' or file == activity.lower()+'_schema' or file == activityAlphaNum+'_schema'):
@@ -178,8 +178,8 @@ async def test(request):
     # sort in place alphabetically
     api_list['activities'].sort(key=lambda i: i['name'].lower())
 
-    for protocol in next(os.walk('/opt/reproschema/protocols'))[1]:
-        protocol_walks = next(os.walk('/opt/reproschema/protocols/' + protocol))
+    for protocol in next(os.walk('/opt/reproschema-library/protocols'))[1]:
+        protocol_walks = next(os.walk('/opt/reproschema-library/protocols/' + protocol))
         protocolAlphaNum = re.sub('[^A-Za-z0-9]+', '', protocol)  # keep only alphanumeric characters
         for file in protocol_walks[2]:  # loop over all files in the protocol directory
             if file.endswith('_schema') and (
@@ -238,7 +238,7 @@ async def get_item(request, act_name, item_id):
         if file_extension == '.jsonld':
             view_options = 2
     try:
-        with open("/opt/reproschema/activities/" + act_name
+        with open("/opt/reproschema-library/activities/" + act_name
                   + '/items/' + filename, "r") as f2:
             file_content = json.load(f2)
             # print(178, file_content)
@@ -262,9 +262,8 @@ async def get_activity(request, act_name):
     filename, file_extension = os.path.splitext(act_name)
     if not file_extension:
         file_extension = '.jsonld'
-    for activity in next(os.walk('/opt/reproschema/activities'))[1]:
-        # print(136, activity, next(os.walk('/opt/reproschema/activities/' + activity)))
-        act_walks = next(os.walk('/opt/reproschema/activities/' + activity))
+    for activity in next(os.walk('/opt/reproschema-library/activities'))[1]:
+        act_walks = next(os.walk('/opt/reproschema-library/activities/' + activity))
 
         for file in act_walks[2]: # loop over all files in the activity directory
             if file.endswith('_schema'):
@@ -301,25 +300,6 @@ async def get_activity(request, act_name):
         elif file_extension == '.ttl':
             view_options = 3
 
-    # if view_options == 1:
-    #     # html
-    #     print('html view')
-    #     try:
-    #         item_q = []
-    #         for field in new_file['ui']['order']:
-    #             with open("/opt/reproschema/activities/" + act_name
-    #                       + '/items/' + field, "r") as f2:
-    #                 field_content = json.load(f2)
-    #             item_q.append(field_content['question'])
-    #         new_file['ui']['order'] = item_q
-    #         return jinja.render("activity.html", request, data=new_file)
-    #     except Exception as e:
-    #         print('error in contents to render html', e)
-    #         logger.error(e)
-    #         return response.json(new_file, ensure_ascii=False,
-    #                              escape_forward_slashes=False,
-    #                              headers=response_headers)
-
     if view_options == 2:
         # print('in json ')
         # jsonld
@@ -337,44 +317,6 @@ async def get_activity(request, act_name):
         except Exception as e:
             print(e)
             raise
-
-
-@app.route('/protocols/<proto_name>')
-async def get_protocol(request, proto_name):
-    # view_options = 1  # default view is html
-    view_options = 2 # make jsonld default for now
-    response_headers = {'Content-type': 'application/ld+json'}
-    filename, file_extension = os.path.splitext(proto_name)
-    if not file_extension:
-        file_extension = '.jsonld'
-    if 'application/json' in request.headers.get('accept')  or \
-            'application/ld+json' in request.headers.get('accept'):
-        view_options = 2
-    else:
-        # if not file_extension:
-        #     view_options = 1  # html view
-        if file_extension == '.jsonld':
-            view_options = 2
-    try:
-        for root, dirs, files in os.walk(
-                '/opt/reproschema/protocols/'+ filename):
-            for file in files:
-                if file.endswith('_schema'):
-                    # print(72, root, file)
-                    with open(os.path.join(root, file), "r") as fa:
-                        try:
-                            file_content = json.load(fa)
-                            new_file = await replace_url(file_content, request)
-                            # print(122, new_file)
-                        except ValueError:
-                            print('error!!')
-    except ValueError:
-        return response.text('Error! check protocol name')
-
-    if view_options == 2:
-        # jsonld
-        return response.json(new_file, ensure_ascii=False,
-                             escape_forward_slashes=False, headers=response_headers)
 
 
 @app.route('/terms/<term_name>')
