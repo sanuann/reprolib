@@ -150,11 +150,11 @@ async def test(request):
                 with open(os.path.join(act_walks[0], file), "r") as fa:
                     try:
                         act_schema = json.load(fa)
-                        if 'skos:prefLabel' in act_schema:
-                            if isinstance(act_schema['skos:prefLabel'], str):
-                                activityPrefLabel_map[activity] = act_schema['skos:prefLabel']
+                        if 'prefLabel' in act_schema:
+                            if isinstance(act_schema['prefLabel'], str):
+                                activityPrefLabel_map[activity] = act_schema['prefLabel']
                             else:
-                                activityPrefLabel_map[activity] = act_schema['skos:prefLabel']['en']
+                                activityPrefLabel_map[activity] = act_schema['prefLabel']['en']
                         else: activityPrefLabel_map[activity] = act_schema['prefLabel']
                     except Exception as e:
                         print(153, 'error ---', file, e)
@@ -217,28 +217,6 @@ async def get_generic_context(request):
     response_headers = {'Content-type': 'application/ld+json'}
     with open("/opt/reproschema/contexts/generic", "r") as f1:
         file_content = json.load(f1)
-    new_file = await replace_url(file_content, request)
-    return response.json(new_file, ensure_ascii=False,
-                         escape_forward_slashes=False, headers=response_headers)
-
-
-@app.route('/protocols/<proto_folder>/<proto_context>')
-async def get_protocol_context(request, proto_folder, proto_context):
-    response_headers = {'Content-type': 'application/ld+json'}
-    with open("/opt/reproschema/protocols/" + proto_folder + '/' +
-              proto_context, "r") as f1:
-        file_content = json.load(f1)
-    new_file = await replace_url(file_content, request)
-    return response.json(new_file, ensure_ascii=False,
-                         escape_forward_slashes=False, headers=response_headers)
-
-
-@app.route('/activities/<act_folder>/<act_context>')
-async def get_activity_context(request, act_folder, act_context):
-    response_headers = {'Content-type': 'application/ld+json'}
-    with open("/opt/reproschema/activities/" + act_folder
-              + '/' + act_context, "r") as f2:
-        file_content = json.load(f2)
     new_file = await replace_url(file_content, request)
     return response.json(new_file, ensure_ascii=False,
                          escape_forward_slashes=False, headers=response_headers)
@@ -343,7 +321,7 @@ async def get_activity(request, act_name):
     #                              headers=response_headers)
 
     if view_options == 2:
-        print('in json ')
+        # print('in json ')
         # jsonld
         return response.json(new_file, ensure_ascii=False,
                              escape_forward_slashes=False, headers=response_headers)
@@ -392,18 +370,6 @@ async def get_protocol(request, proto_name):
                             print('error!!')
     except ValueError:
         return response.text('Error! check protocol name')
-
-    # if view_options == 1:
-    #     # html. for time being it renders jsonld
-    #     try:
-    #         # TODO
-    #         return jinja.render("field.html", request, data=new_file)
-    #     except Exception as e:
-    #         logger.error(e)
-    #         # if it raises an Exception then deliver the jsonld
-    #         return response.json(new_file, ensure_ascii=False,
-    #                              escape_forward_slashes=False,
-    #                              headers=response_headers)
 
     if view_options == 2:
         # jsonld

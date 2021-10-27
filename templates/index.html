@@ -38,47 +38,6 @@
             </table>
         </div> <!--/.tWrap__body-->
     </div> <!--/.tWrap-->
-    <h2>LIST OF PROTOCOLS</h2>
-    <div class="tWrap">
-        <div class="tWrap__head">
-            <table>
-                <col span="1" class="wide">
-                <thead>
-                <tr>
-                    <th>PROTOCOL NAME</th>
-                    <th>JSON-LD</th>
-                </tr>
-                </thead>
-            </table>
-        </div> <!--/.tWrap__head-->
-        <div class="tWrap__body">
-            <table>
-                <col span="1" class="wide">
-                <tbody>
-                    {% for item in data.protocols %}
-                        <tr>
-                            <td><a href="{{ item.ui }}">{{ item.name }}
-                            </a>
-                            </td>
-                            <td><a href="{{ item.jsonld_path }}" title="JSON-LD Data"><img
-                                    style="border:0px;" width="48"
-                                    src="https://json-ld.org/images/json-ld-data-48.png"
-                                    alt="JSON-LD-logo-48"/></a>
-                            </td>
-{#                            <td><a href="{{ item.ttl_path }}" title="TURTLE Data"><img#}
-{#                                    style="border:0px;" width="48"#}
-{#                                    src="http://cygri.github.io/rdf-logos/svg/turtle.svg"#}
-{#                                    alt="TURTLE-logo-48"/></a>#}
-{##}
-{#                            </td>#}
-{#                            <td><a href="{{ item.html_path }}">{{ item.name }}</a>#}
-                            </td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div> <!--/.tWrap__body-->
-    </div> <!--/.tWrap-->
 </div> <!--/.container-->
 
 <style>
