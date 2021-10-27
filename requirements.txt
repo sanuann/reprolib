@@ -1,9 +1,10 @@
-sanic
-Sanic-Cors
+sanic==19.6.3
+Sanic-Cors==0.9.9.post3
+Jinja2==2.10.1
+sanic-jinja2==0.7.5
 PyLD==1.0.5
-sanic_jinja2==0.7.5
-PyGithub
-requests
-reproschema
+# PyGithub
+# requests
+# reproschema
 
 
