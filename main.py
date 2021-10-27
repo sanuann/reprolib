@@ -178,37 +178,37 @@ async def test(request):
     # sort in place alphabetically
     api_list['activities'].sort(key=lambda i: i['name'].lower())
 
-    for protocol in next(os.walk('/opt/reproschema-library/protocols'))[1]:
-        protocol_walks = next(os.walk('/opt/reproschema-library/protocols/' + protocol))
-        protocolAlphaNum = re.sub('[^A-Za-z0-9]+', '', protocol)  # keep only alphanumeric characters
-        for file in protocol_walks[2]:  # loop over all files in the protocol directory
-            if file.endswith('_schema') and (
-                    file == protocol + '_schema' or file == protocol.lower() + '_schema' or file == protocolAlphaNum + '_schema'):
-                with open(os.path.join(protocol_walks[0], file), "r") as fp:
-                    try:
-                        protocol_schema = json.load(fp)
-                        protocolPrefLabel_map[protocol] = protocol_schema['skos:prefLabel']
-                    except Exception as e:
-                        print(181, 'error', file, e)
-                        # logger.error('error in json', file, e)
-        if protocol in protocolPrefLabel_map:
-            protocol_pref_label = protocolPrefLabel_map[protocol]
-        else:
-            protocol_pref_label = protocol
-
-        protocol_dict = {
-            'name': protocol_pref_label,
-            'html_path': 'https://' + hostname + '/protocols/' +
-                         protocol,
-            'jsonld_path': 'https://' + hostname + '/protocols/' +
-                         protocol + '.jsonld',
-            'ttl_path': 'https://' + hostname + '/protocols/' +
-                         protocol + '.jsonld',
-            'ui': 'https://schema.repronim.org/ui/#/?url='+'https://' + hostname + '/protocols/' + protocol
-        }
-        api_list['protocols'].append(protocol_dict)
-    # sort in place alphabetically
-    api_list['protocols'].sort(key=lambda i: i['name'].lower())
+    # for protocol in next(os.walk('/opt/reproschema-library/protocols'))[1]:
+    #     protocol_walks = next(os.walk('/opt/reproschema-library/protocols/' + protocol))
+    #     protocolAlphaNum = re.sub('[^A-Za-z0-9]+', '', protocol)  # keep only alphanumeric characters
+    #     for file in protocol_walks[2]:  # loop over all files in the protocol directory
+    #         if file.endswith('_schema') and (
+    #                 file == protocol + '_schema' or file == protocol.lower() + '_schema' or file == protocolAlphaNum + '_schema'):
+    #             with open(os.path.join(protocol_walks[0], file), "r") as fp:
+    #                 try:
+    #                     protocol_schema = json.load(fp)
+    #                     protocolPrefLabel_map[protocol] = protocol_schema['skos:prefLabel']
+    #                 except Exception as e:
+    #                     print(181, 'error', file, e)
+    #                     # logger.error('error in json', file, e)
+    #     if protocol in protocolPrefLabel_map:
+    #         protocol_pref_label = protocolPrefLabel_map[protocol]
+    #     else:
+    #         protocol_pref_label = protocol
+    #
+    #     protocol_dict = {
+    #         'name': protocol_pref_label,
+    #         'html_path': 'https://' + hostname + '/protocols/' +
+    #                      protocol,
+    #         'jsonld_path': 'https://' + hostname + '/protocols/' +
+    #                      protocol + '.jsonld',
+    #         'ttl_path': 'https://' + hostname + '/protocols/' +
+    #                      protocol + '.jsonld',
+    #         'ui': 'https://schema.repronim.org/ui/#/?url='+'https://' + hostname + '/protocols/' + protocol
+    #     }
+    #     api_list['protocols'].append(protocol_dict)
+    # # sort in place alphabetically
+    # api_list['protocols'].sort(key=lambda i: i['name'].lower())
     return jinja.render("index.html", request, data=api_list)
 
 
