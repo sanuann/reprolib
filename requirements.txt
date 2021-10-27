@@ -1,7 +1,7 @@
 sanic
 Sanic-Cors
 PyLD==1.0.5
-sanic_jinja2
+sanic_jinja2==0.7.5
 PyGithub
 requests
 reproschema
