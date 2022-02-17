@@ -1,4 +1,4 @@
-sanic==19.6.3
+sanic==20.12.6
 Sanic-Cors==0.9.9.post3
 Jinja2==2.10.1
 sanic-jinja2==0.7.5
